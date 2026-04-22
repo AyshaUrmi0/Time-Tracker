@@ -21,8 +21,17 @@ const taskSelect = {
   assignedTo: { select: { id: true, name: true, email: true } },
 } as const;
 
-function canMutateTask(user: SessionUser, createdById: string): boolean {
+function canOwnTask(user: SessionUser, createdById: string): boolean {
   return user.role === "ADMIN" || user.userId === createdById;
+}
+
+function canEditTask(
+  user: SessionUser,
+  task: { createdById: string; assignedToId: string | null },
+): boolean {
+  return (
+    canOwnTask(user, task.createdById) || user.userId === task.assignedToId
+  );
 }
 
 export const tasksService = {
@@ -76,11 +85,25 @@ export const tasksService = {
   async update(user: SessionUser, id: string, input: UpdateTaskInput) {
     const existing = await prisma.task.findUnique({
       where: { id },
-      select: { id: true, createdById: true, isArchived: true },
+      select: {
+        id: true,
+        createdById: true,
+        assignedToId: true,
+        isArchived: true,
+      },
     });
     if (!existing) throw ApiErrors.notFound("Task not found");
     if (existing.isArchived) throw ApiErrors.conflict("TASK_ARCHIVED", "Task is archived");
-    if (!canMutateTask(user, existing.createdById)) throw ApiErrors.forbidden();
+    if (!canEditTask(user, existing)) throw ApiErrors.forbidden();
+
+    const isOwner = canOwnTask(user, existing.createdById);
+    if (!isOwner) {
+      if (input.title !== undefined || input.assignedToId !== undefined) {
+        throw ApiErrors.forbidden(
+          "Only the task creator or an admin can change the title or assignee",
+        );
+      }
+    }
 
     if (input.assignedToId) {
       const assignee = await prisma.user.findUnique({
@@ -111,7 +134,7 @@ export const tasksService = {
     });
     if (!existing) throw ApiErrors.notFound("Task not found");
     if (existing.isArchived) return existing;
-    if (!canMutateTask(user, existing.createdById)) throw ApiErrors.forbidden();
+    if (!canOwnTask(user, existing.createdById)) throw ApiErrors.forbidden();
 
     return prisma.task.update({
       where: { id },

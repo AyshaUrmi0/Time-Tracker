@@ -17,8 +17,14 @@ type Props = {
   onArchive: (task: Task) => void;
 };
 
-function canMutate(task: Task, currentUserId: string, isAdmin: boolean) {
+function canOwn(task: Task, currentUserId: string, isAdmin: boolean) {
   return isAdmin || task.createdById === currentUserId;
+}
+
+function canEdit(task: Task, currentUserId: string, isAdmin: boolean) {
+  return (
+    canOwn(task, currentUserId, isAdmin) || task.assignedToId === currentUserId
+  );
 }
 
 export function TasksTable({ tasks, currentUserId, isAdmin, onEdit, onArchive }: Props) {
@@ -40,7 +46,8 @@ export function TasksTable({ tasks, currentUserId, isAdmin, onEdit, onArchive }:
             <TaskRow
               key={task.id}
               task={task}
-              canMutate={canMutate(task, currentUserId, isAdmin)}
+              canEdit={canEdit(task, currentUserId, isAdmin)}
+              canOwn={canOwn(task, currentUserId, isAdmin)}
               onEdit={() => onEdit(task)}
               onArchive={() => onArchive(task)}
             />
@@ -53,12 +60,14 @@ export function TasksTable({ tasks, currentUserId, isAdmin, onEdit, onArchive }:
 
 function TaskRow({
   task,
-  canMutate,
+  canEdit,
+  canOwn,
   onEdit,
   onArchive,
 }: {
   task: Task;
-  canMutate: boolean;
+  canEdit: boolean;
+  canOwn: boolean;
   onEdit: () => void;
   onArchive: () => void;
 }) {
@@ -99,10 +108,13 @@ function TaskRow({
         {formatDistanceToNowStrict(new Date(task.updatedAt), { addSuffix: true })}
       </td>
       <td className="px-4 py-3 text-right">
-        {canMutate && !task.isArchived && (
-          <RowActionsMenu onEdit={onEdit} onArchive={onArchive} />
+        {canEdit && !task.isArchived && (
+          <RowActionsMenu
+            onEdit={onEdit}
+            onArchive={canOwn ? onArchive : undefined}
+          />
         )}
-        {!canMutate && !task.isArchived && (
+        {!canEdit && !task.isArchived && (
           <Button variant="ghost" size="sm" onClick={onEdit}>
             View
           </Button>
@@ -122,7 +134,7 @@ function RowActionsMenu({
   onArchive,
 }: {
   onEdit: () => void;
-  onArchive: () => void;
+  onArchive?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -211,17 +223,19 @@ function RowActionsMenu({
               >
                 Edit
               </button>
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  setOpen(false);
-                  onArchive();
-                }}
-                className="block w-full px-3 py-2 text-left text-[13px] text-[var(--danger)] hover:bg-[var(--danger-soft)]"
-              >
-                Archive
-              </button>
+              {onArchive && (
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setOpen(false);
+                    onArchive();
+                  }}
+                  className="block w-full px-3 py-2 text-left text-[13px] text-[var(--danger)] hover:bg-[var(--danger-soft)]"
+                >
+                  Archive
+                </button>
+              )}
             </div>
           </>,
           document.body,

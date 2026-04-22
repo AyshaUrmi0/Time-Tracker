@@ -14,6 +14,7 @@ type NavItem = { href: string; label: string; adminOnly?: boolean };
 const NAV: NavItem[] = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/tasks", label: "Tasks" },
+  { href: "/timesheet", label: "Timesheet" },
   { href: "/calendar", label: "Calendar" },
   { href: "/reports", label: "Reports" },
   { href: "/team", label: "Team", adminOnly: true },
