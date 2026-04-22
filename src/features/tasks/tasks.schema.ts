@@ -8,7 +8,7 @@ export const taskStatusSchema = z.enum(["TODO", "IN_PROGRESS", "DONE"]);
 
 const optionalAssigneeId = z.preprocess(
   (v) => (v === "" || v === undefined ? null : v),
-  z.string().cuid().nullable(),
+  z.string().min(1).nullable(),
 );
 
 export const createTaskSchema = z.object({
@@ -35,7 +35,7 @@ export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
 
 export const listTasksQuerySchema = z.object({
   status: taskStatusSchema.optional(),
-  assignedToId: z.string().cuid().optional(),
+  assignedToId: z.string().min(1).optional(),
   archived: z
     .enum(["true", "false", "all"])
     .optional()

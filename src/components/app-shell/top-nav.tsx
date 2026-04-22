@@ -6,6 +6,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
 import { BrandMark } from "@/components/brand";
 import { Avatar } from "@/components/ui/avatar";
+import { TimerWidget } from "@/features/timer/components/timer-widget";
 import { cn } from "@/lib/utils";
 
 type NavItem = { href: string; label: string; adminOnly?: boolean };
@@ -59,7 +60,10 @@ export function TopNav() {
           </nav>
         </div>
 
-        <AvatarMenu name={session?.user?.name ?? "User"} id={session?.user?.id} />
+        <div className="flex items-center gap-3">
+          <TimerWidget />
+          <AvatarMenu name={session?.user?.name ?? "User"} id={session?.user?.id} />
+        </div>
       </div>
     </header>
   );

@@ -23,6 +23,8 @@ export function Providers({ children }: { children: ReactNode }) {
         <ModalProvider>{children}</ModalProvider>
         <Toaster
           position="top-right"
+          closeButton
+          duration={4500}
           toastOptions={{
             style: {
               background: "var(--surface)",

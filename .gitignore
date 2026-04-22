@@ -40,6 +40,9 @@ yarn-error.log*
 # local docs / scratch / Postman collections
 /docs
 
+# Claude Code local settings
+.claude/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
