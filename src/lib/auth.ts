@@ -1,6 +1,6 @@
-// Auth helpers (stubs in project-setup; full implementation in feature/auth-api).
-// Usage: await requireAuth() / requireAdmin() in route handlers.
-
+import { cache } from "react";
+import { auth as nextAuth } from "@/auth";
+import { prisma } from "./prisma";
 import { ApiErrors } from "./api-error";
 
 export type SessionUser = {
@@ -11,9 +11,18 @@ export type SessionUser = {
   timezone: string;
 };
 
-/** Stub: returns null in V1 project-setup. Replaced in feature/auth-api. */
 export async function auth(): Promise<{ user: SessionUser } | null> {
-  return null;
+  const session = await nextAuth();
+  if (!session?.user?.id) return null;
+  return {
+    user: {
+      userId: session.user.id,
+      email: session.user.email ?? "",
+      name: session.user.name ?? "",
+      role: session.user.role,
+      timezone: session.user.timezone,
+    },
+  };
 }
 
 export async function requireAuth(): Promise<SessionUser> {
@@ -28,10 +37,18 @@ export async function requireAdmin(): Promise<SessionUser> {
   return user;
 }
 
-/**
- * Returns the full user record from the DB for the current session.
- * Stub returns null until auth-api feature ships.
- */
-export async function getCurrentUser() {
-  return null;
-}
+export const getCurrentUser = cache(async () => {
+  const session = await auth();
+  if (!session?.user) return null;
+  return prisma.user.findUnique({
+    where: { id: session.user.userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      timezone: true,
+      isArchived: true,
+    },
+  });
+});
