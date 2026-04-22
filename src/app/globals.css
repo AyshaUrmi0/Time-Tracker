@@ -81,3 +81,9 @@ body {
   background: var(--accent-soft);
   color: var(--accent-hover);
 }
+
+[data-sonner-toaster] [data-close-button] {
+  left: auto !important;
+  right: 0 !important;
+  transform: translate(35%, -35%) !important;
+}
