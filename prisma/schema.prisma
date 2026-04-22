@@ -1,0 +1,223 @@
+// Time Tracker MVP — Prisma schema
+// V1 build. Models include V2 ClickUp readiness fields (unused in V1).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum EntrySource {
+  LOCAL
+  CLICKUP
+  CLICKUP_INITIAL_SYNC
+}
+
+enum SyncStatus {
+  NOT_SYNCED
+  PENDING
+  SYNCED
+  FAILED
+  PERMANENT_FAIL
+  CONFLICT
+}
+
+// ─────────────────────────────────────────────────────────────
+// User
+// ─────────────────────────────────────────────────────────────
+
+model User {
+  id           String  @id @default(cuid())
+  name         String
+  email        String  @unique
+  passwordHash String
+  role         Role    @default(MEMBER)
+  timezone     String  @default("UTC")
+  isArchived   Boolean @default(false)
+
+  clickupUserId Int?    @unique
+  clickupEmail  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdTasks      Task[]             @relation("TaskCreator")
+  assignedTasks     Task[]             @relation("TaskAssignee")
+  timeEntries       TimeEntry[]
+  clickupConnection ClickUpConnection?
+}
+
+// ─────────────────────────────────────────────────────────────
+// Task
+// ─────────────────────────────────────────────────────────────
+
+model Task {
+  id            String     @id @default(cuid())
+  title         String
+  description   String?
+  status        TaskStatus @default(TODO)
+  createdById   String
+  assignedToId  String?
+  isArchived    Boolean    @default(false)
+
+  source              EntrySource @default(LOCAL)
+  clickupTaskId       String?     @unique
+  clickupWorkspaceId  String?
+  clickupSpaceId      String?
+  clickupSpaceName    String?
+  clickupFolderId     String?
+  clickupFolderName   String?
+  clickupListId       String?
+  clickupListName     String?
+  clickupUrl          String?
+
+  clickupStatus       String?
+  clickupStatusColor  String?
+  clickupPriority     Int?
+  clickupDueDate      DateTime?
+  clickupTags         String[]    @default([])
+  clickupCustomFields Json?
+  clickupLastSyncedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdBy   User        @relation("TaskCreator", fields: [createdById], references: [id])
+  assignedTo  User?       @relation("TaskAssignee", fields: [assignedToId], references: [id])
+  timeEntries TimeEntry[]
+
+  @@index([isArchived, status])
+  @@index([assignedToId])
+  @@index([clickupTaskId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// TimeEntry
+// ─────────────────────────────────────────────────────────────
+
+model TimeEntry {
+  id              String    @id @default(cuid())
+  userId          String
+  taskId          String
+  note            String?
+  startTime       DateTime  @db.Timestamptz(3)
+  endTime         DateTime? @db.Timestamptz(3)
+  durationSeconds Int?
+  isManual        Boolean   @default(false)
+
+  source             EntrySource @default(LOCAL)
+  clickupTimeEntryId String?     @unique
+  clickupTeamId      String?
+  syncStatus         SyncStatus  @default(NOT_SYNCED)
+  syncLastAttemptAt  DateTime?
+  syncLastError      String?
+  syncRetryCount     Int         @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+  task Task @relation(fields: [taskId], references: [id])
+
+  @@index([userId, startTime])
+  @@index([taskId])
+  @@index([syncStatus])
+}
+
+// ─────────────────────────────────────────────────────────────
+// ClickUp (V2 — schema only in V1)
+// ─────────────────────────────────────────────────────────────
+
+model ClickUpConnection {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  accessTokenEncrypted String
+  encryptionIv         String
+
+  clickupUserId    Int
+  clickupUserEmail String
+
+  isActive   Boolean   @default(true)
+  lastSyncAt DateTime?
+  lastError  String?
+  revokedAt  DateTime?
+
+  rateLimitRemaining Int?
+  rateLimitResetAt   DateTime?
+  lastRequestAt      DateTime?
+
+  connectedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspaces ClickUpWorkspace[]
+  webhooks   ClickUpWebhook[]
+}
+
+model ClickUpWorkspace {
+  id           String            @id @default(cuid())
+  connectionId String
+  connection   ClickUpConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  clickupTeamId  String
+  name           String
+  color          String?
+  avatar         String?
+  isSelected     Boolean   @default(true)
+  lastFullSyncAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@unique([connectionId, clickupTeamId])
+}
+
+model ClickUpWebhook {
+  id           String            @id @default(cuid())
+  connectionId String
+  connection   ClickUpConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  clickupWebhookId String   @unique
+  clickupTeamId    String
+  secretEncrypted  String
+  secretIv         String
+  events           String[]
+  endpoint         String
+  isHealthy        Boolean  @default(true)
+  lastFailedAt     DateTime?
+  failureCount     Int      @default(0)
+
+  createdAt DateTime @default(now())
+}
+
+model ClickUpWebhookEvent {
+  id             String    @id @default(cuid())
+  clickupEventId String    @unique
+  webhookId      String
+  event          String
+  payload        Json
+  processedAt    DateTime?
+  errorMessage   String?
+  receivedAt     DateTime  @default(now())
+
+  @@index([processedAt])
+  @@index([receivedAt])
+}
