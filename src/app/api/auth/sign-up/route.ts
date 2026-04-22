@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { signUpSchema } from "@/features/auth/schemas";
+import { signUpSchema } from "@/features/auth/auth.schema";
 import { authService } from "@/server/services/auth.service";
 import { handleApiError } from "@/lib/api-error";
 

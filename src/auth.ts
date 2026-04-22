@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { signInSchema } from "@/features/auth/schemas";
+import { signInSchema } from "@/features/auth/auth.schema";
 import { authService } from "@/server/services/auth.service";
 
 const SEVEN_DAYS = 60 * 60 * 24 * 7;
