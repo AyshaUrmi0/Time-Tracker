@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { PrismaClient, Role, TaskStatus } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { BCRYPT_ROUNDS } from "../src/lib/constants";
 
 const prisma = new PrismaClient();
 
@@ -61,7 +62,7 @@ function buildEntries(): SeedEntry[] {
 
 async function seedUsers() {
   for (const u of USERS) {
-    const passwordHash = await bcrypt.hash(u.password, 12);
+    const passwordHash = await bcrypt.hash(u.password, BCRYPT_ROUNDS);
     await prisma.user.upsert({
       where: { email: u.email },
       create: {

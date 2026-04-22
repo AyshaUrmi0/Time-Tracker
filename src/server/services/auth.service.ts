@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { ApiErrors } from "@/lib/api-error";
-import type { SignUpInput } from "@/features/auth/schemas";
+import type { SignUpInput } from "@/features/auth/auth.schema";
 
 const BCRYPT_ROUNDS = 12;
 

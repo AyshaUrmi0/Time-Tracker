@@ -2,14 +2,9 @@ import { cache } from "react";
 import { auth as nextAuth } from "@/auth";
 import { prisma } from "./prisma";
 import { ApiErrors } from "./api-error";
+import type { SessionUser } from "@/types";
 
-export type SessionUser = {
-  userId: string;
-  email: string;
-  name: string;
-  role: "ADMIN" | "MEMBER";
-  timezone: string;
-};
+export type { SessionUser };
 
 export async function auth(): Promise<{ user: SessionUser } | null> {
   const session = await nextAuth();
