@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
 import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Avatar } from "@/components/ui/avatar";
 import { StatusBadge } from "@/features/tasks/components/status-badge";
 import { useTasks } from "@/features/tasks/tasks.queries";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { Task } from "@/features/tasks/types";
 
 type Props = {
   open: boolean;
@@ -15,7 +17,20 @@ type Props = {
   currentTaskId?: string | null;
 };
 
+function rankTask(task: Task, currentUserId: string): number {
+  if (task.assignedToId && task.assignedToId === currentUserId) return 0;
+  if (task.createdById === currentUserId) return 1;
+  if (task.assignedToId === null) return 2;
+  return 3;
+}
+
+function groupLabel(rank: number): string {
+  return ["Assigned to me", "Created by me", "Unassigned", "Team"][rank] ?? "";
+}
+
 export function TaskPickerDialog({ open, onClose, onSelect, currentTaskId }: Props) {
+  const { data: session } = useSession();
+  const currentUserId = session?.user?.id ?? "";
   const [query, setQuery] = useState("");
   const [cursor, setCursor] = useState(0);
   const tasksQuery = useTasks({ archived: "false" });
@@ -24,9 +39,16 @@ export function TaskPickerDialog({ open, onClose, onSelect, currentTaskId }: Pro
     const all = tasksQuery.data ?? [];
     const active = all.filter((t) => !t.isArchived);
     const q = query.trim().toLowerCase();
-    if (!q) return active;
-    return active.filter((t) => t.title.toLowerCase().includes(q));
-  }, [tasksQuery.data, query]);
+    const matched = q
+      ? active.filter((t) => t.title.toLowerCase().includes(q))
+      : active;
+    return [...matched].sort((a, b) => {
+      const ra = rankTask(a, currentUserId);
+      const rb = rankTask(b, currentUserId);
+      if (ra !== rb) return ra - rb;
+      return a.title.localeCompare(b.title);
+    });
+  }, [tasksQuery.data, query, currentUserId]);
 
   useEffect(() => {
     if (!open) {
@@ -90,8 +112,17 @@ export function TaskPickerDialog({ open, onClose, onSelect, currentTaskId }: Pro
             {filtered.map((task, idx) => {
               const active = idx === cursor;
               const isCurrent = task.id === currentTaskId;
+              const rank = rankTask(task, currentUserId);
+              const prevRank =
+                idx > 0 ? rankTask(filtered[idx - 1], currentUserId) : -1;
+              const showHeader = rank !== prevRank;
               return (
                 <li key={task.id}>
+                  {showHeader && (
+                    <div className="bg-[var(--surface-hover)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                      {groupLabel(rank)}
+                    </div>
+                  )}
                   <button
                     type="button"
                     onClick={() => onSelect(task.id)}

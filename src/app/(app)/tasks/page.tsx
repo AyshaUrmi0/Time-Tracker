@@ -212,6 +212,13 @@ export default function TasksPage() {
         task={formState.open && formState.mode === "edit" ? formState.task : undefined}
         canEdit={
           formState.open && formState.mode === "edit"
+            ? isAdmin ||
+              formState.task.createdById === currentUserId ||
+              formState.task.assignedToId === currentUserId
+            : true
+        }
+        canOwn={
+          formState.open && formState.mode === "edit"
             ? isAdmin || formState.task.createdById === currentUserId
             : true
         }

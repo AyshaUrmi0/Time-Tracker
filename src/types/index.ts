@@ -17,6 +17,7 @@ export type ApiErrorCode =
   | "EMAIL_TAKEN"
   | "TASK_ARCHIVED"
   | "TIMER_ALREADY_RUNNING"
+  | "TIMER_RUNNING"
   | "NO_ACTIVE_TIMER"
   | "OVERLAP"
   | "INTERNAL_ERROR";

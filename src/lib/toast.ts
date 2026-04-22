@@ -9,6 +9,7 @@ const friendlyByCode: Record<string, string> = {
   EMAIL_TAKEN: "That email is already in use.",
   TASK_ARCHIVED: "This task is archived. Unarchive it first to make changes.",
   TIMER_ALREADY_RUNNING: "A timer is already running — stop it first.",
+  TIMER_RUNNING: "Stop the running timer before editing this entry.",
   NO_ACTIVE_TIMER: "No timer is running right now.",
   OVERLAP: "This time overlaps with another entry.",
   INTERNAL_ERROR: "Something went wrong on our end. Please try again.",
