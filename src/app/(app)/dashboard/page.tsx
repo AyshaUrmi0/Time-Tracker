@@ -6,20 +6,38 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useDashboardSummary } from "@/features/dashboard/dashboard.queries";
 import { useSelectableUsers } from "@/features/users/users.queries";
 import { KpiTile } from "@/features/dashboard/components/kpi-tile";
-import { ActivityChart } from "@/features/dashboard/components/activity-chart";
 import { TopTasks } from "@/features/dashboard/components/top-tasks";
 import { RecentEntries } from "@/features/dashboard/components/recent-entries";
 import { RunningTimers } from "@/features/dashboard/components/running-timers";
 import { ScopeFilter } from "@/features/dashboard/components/scope-filter";
 import { formatDurationSec } from "@/features/dashboard/components/format";
+import {
+  DateRangePicker,
+  computePresetRange,
+  type DatePreset,
+} from "@/features/reports/components/date-range-picker";
+import { DayTimeline } from "@/features/reports/components/day-timeline";
+import { todayInTimezone } from "@/features/reports/components/format";
+import { useReportSummary } from "@/features/reports/reports.queries";
 
 export default function DashboardPage() {
   const { data: session } = useSession();
   const userName = session?.user?.name ?? "";
   const isAdmin = session?.user?.role === "ADMIN";
+  const tz =
+    session?.user?.timezone ||
+    Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   const [adminView, setAdminView] = useState<string>("team");
   const usersQuery = useSelectableUsers();
+
+  const initialRange = useMemo(() => {
+    const range = computePresetRange("last7", tz)!;
+    return { ...range, preset: "last7" as DatePreset };
+  }, [tz]);
+  const [from, setFrom] = useState(initialRange.from);
+  const [to, setTo] = useState(initialRange.to);
+  const [preset, setPreset] = useState<DatePreset>(initialRange.preset);
 
   const userIdForQuery = useMemo(() => {
     if (!isAdmin) return undefined;
@@ -29,6 +47,24 @@ export default function DashboardPage() {
 
   const summaryQuery = useDashboardSummary(userIdForQuery);
   const summary = summaryQuery.data;
+
+  const activityQuery = useReportSummary({
+    from,
+    to,
+    groupBy: "day",
+    userId: userIdForQuery,
+  });
+  const todayYmd = todayInTimezone(tz);
+
+  function handleRangeChange(next: {
+    from: string;
+    to: string;
+    preset: DatePreset;
+  }) {
+    setFrom(next.from);
+    setTo(next.to);
+    setPreset(next.preset);
+  }
 
   const viewingLabel = useMemo(() => {
     if (!isAdmin || adminView === "team") return null;
@@ -115,7 +151,28 @@ export default function DashboardPage() {
             />
           )}
 
-          <ActivityChart activity={summary.activity} />
+          <section className="flex flex-col gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-[13px] font-semibold text-[var(--text-primary)]">
+                Activity
+              </h2>
+              <DateRangePicker
+                timezone={tz}
+                from={from}
+                to={to}
+                preset={preset}
+                onChange={handleRangeChange}
+              />
+            </div>
+            {activityQuery.data ? (
+              <DayTimeline
+                buckets={activityQuery.data.buckets}
+                todayYmd={todayYmd}
+              />
+            ) : (
+              <Skeleton className="h-[280px] w-full" />
+            )}
+          </section>
 
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
             <TopTasks tasks={summary.topTasks} />
