@@ -1,16 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
+
+function subscribeTick(callback: () => void): () => void {
+  const id = setInterval(callback, 1000);
+  return () => clearInterval(id);
+}
+
+const noopSubscribe = () => () => {};
+const getSnapshot = () => Date.now();
+const getServerSnapshot = () => 0;
 
 export function useLiveDuration(startTimeIso: string | undefined): number {
-  const [now, setNow] = useState(() => Date.now());
-
-  useEffect(() => {
-    if (!startTimeIso) return;
-    setNow(Date.now());
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, [startTimeIso]);
+  const now = useSyncExternalStore(
+    startTimeIso ? subscribeTick : noopSubscribe,
+    getSnapshot,
+    getServerSnapshot,
+  );
 
   if (!startTimeIso) return 0;
   const started = new Date(startTimeIso).getTime();

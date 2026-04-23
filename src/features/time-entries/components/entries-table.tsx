@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Avatar } from "@/components/ui/avatar";
+import { useMounted } from "@/lib/use-mounted";
 import type { TimeEntry } from "../types";
 
 type Props = {
@@ -195,11 +196,9 @@ function RowActionsMenu({
   onDelete: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => setMounted(true), []);
+  const mounted = useMounted();
 
   useLayoutEffect(() => {
     if (!open || !btnRef.current) return;
