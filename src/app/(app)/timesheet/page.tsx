@@ -69,7 +69,10 @@ export default function TimesheetPage() {
     | { open: true; mode: "edit"; entry: TimeEntry }
   >({ open: false });
 
-  const entries = entriesQuery.data ?? [];
+  const entries = useMemo(
+    () => entriesQuery.data ?? [],
+    [entriesQuery.data],
+  );
   const totalSec = useMemo(
     () => entries.reduce((sum, e) => sum + (e.durationSeconds ?? 0), 0),
     [entries],

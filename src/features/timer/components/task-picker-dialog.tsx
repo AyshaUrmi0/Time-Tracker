@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -28,7 +28,17 @@ function groupLabel(rank: number): string {
   return ["Assigned to me", "Created by me", "Unassigned", "Team"][rank] ?? "";
 }
 
-export function TaskPickerDialog({ open, onClose, onSelect, currentTaskId }: Props) {
+export function TaskPickerDialog(props: Props) {
+  if (!props.open) return null;
+  return <TaskPickerContent {...props} />;
+}
+
+function TaskPickerContent({
+  open,
+  onClose,
+  onSelect,
+  currentTaskId,
+}: Props) {
   const { data: session } = useSession();
   const currentUserId = session?.user?.id ?? "";
   const [query, setQuery] = useState("");
@@ -50,16 +60,7 @@ export function TaskPickerDialog({ open, onClose, onSelect, currentTaskId }: Pro
     });
   }, [tasksQuery.data, query, currentUserId]);
 
-  useEffect(() => {
-    if (!open) {
-      setQuery("");
-      setCursor(0);
-    }
-  }, [open]);
-
-  useEffect(() => {
-    if (cursor >= filtered.length) setCursor(0);
-  }, [filtered.length, cursor]);
+  const activeCursor = Math.min(cursor, Math.max(0, filtered.length - 1));
 
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "ArrowDown") {
@@ -70,7 +71,7 @@ export function TaskPickerDialog({ open, onClose, onSelect, currentTaskId }: Pro
       setCursor((c) => Math.max(0, c - 1));
     } else if (e.key === "Enter") {
       e.preventDefault();
-      const target = filtered[cursor];
+      const target = filtered[activeCursor];
       if (target) onSelect(target.id);
     }
   }
@@ -110,11 +111,11 @@ export function TaskPickerDialog({ open, onClose, onSelect, currentTaskId }: Pro
         ) : (
           <ul role="listbox" className="divide-y divide-[var(--border)]">
             {filtered.map((task, idx) => {
-              const active = idx === cursor;
+              const active = idx === activeCursor;
               const isCurrent = task.id === currentTaskId;
               const rank = rankTask(task, currentUserId);
               const prevRank =
-                idx > 0 ? rankTask(filtered[idx - 1], currentUserId) : -1;
+                idx > 0 ? rankTask(filtered[idx - 1]!, currentUserId) : -1;
               const showHeader = rank !== prevRank;
               return (
                 <li key={task.id}>
@@ -125,9 +126,10 @@ export function TaskPickerDialog({ open, onClose, onSelect, currentTaskId }: Pro
                   )}
                   <button
                     type="button"
+                    role="option"
+                    aria-selected={active}
                     onClick={() => onSelect(task.id)}
                     onMouseEnter={() => setCursor(idx)}
-                    aria-selected={active}
                     className={
                       "flex w-full items-center gap-3 px-3 py-2 text-left transition-colors duration-150 " +
                       (active

@@ -80,7 +80,7 @@ export default function DashboardPage() {
             <KpiTile
               label="This week"
               value={formatDurationSec(summary.week.seconds)}
-              hint="Since Monday"
+              hint="Since Sunday"
             />
             <KpiTile
               label={isTeamView ? "Active timers" : "Tracking now"}

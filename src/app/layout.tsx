@@ -10,8 +10,12 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Time Tracker",
-  description: "Minimal time tracker",
+  title: {
+    default: "Time Tracker",
+    template: "%s | Time Tracker",
+  },
+  description:
+    "Minimal time tracker — track tasks, log time, review your week.",
 };
 
 export default function RootLayout({

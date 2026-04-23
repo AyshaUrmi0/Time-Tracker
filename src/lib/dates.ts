@@ -20,10 +20,10 @@ export function getUserDayEnd(date: Date, timezone: string): Date {
   return fromZonedTime(localEnd, timezone);
 }
 
-/** Returns the UTC instant corresponding to Monday 00:00:00 of the week containing `date`, in the user's timezone. */
+/** Returns the UTC instant corresponding to 00:00:00 of the week start (Sunday by default) containing `date`, in the user's timezone. */
 export function getUserWeekStart(date: Date, timezone: string): Date {
   const zoned = toZonedTime(date, timezone);
-  const localWeekStart = startOfWeek(zoned, { weekStartsOn: 1 });
+  const localWeekStart = startOfWeek(zoned, { weekStartsOn: 0 });
   return fromZonedTime(localWeekStart, timezone);
 }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useSession } from "next-auth/react";
 import { Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,12 @@ type Props = {
   mode: "create" | "edit";
   entry?: TimeEntry;
   canEdit?: boolean;
+  initial?: {
+    date?: string;
+    startTime?: string;
+    endTime?: string;
+    taskId?: string;
+  };
 };
 
 type FormValues = {
@@ -85,6 +91,7 @@ export function EntryFormDialog({
   mode,
   entry,
   canEdit = true,
+  initial,
 }: Props) {
   const { data: session } = useSession();
   const currentUserId = session?.user?.id ?? "";
@@ -96,7 +103,7 @@ export function EntryFormDialog({
     register,
     handleSubmit,
     reset,
-    watch,
+    control,
     setError,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
@@ -116,13 +123,13 @@ export function EntryFormDialog({
         note: entry.note ?? "",
       });
     } else {
-      reset(defaultValues());
+      reset({ ...defaultValues(), ...(initial ?? {}) });
     }
-  }, [open, mode, entry, reset]);
+  }, [open, mode, entry, initial, reset]);
 
-  const watchedDate = watch("date");
-  const watchedStart = watch("startTime");
-  const watchedEnd = watch("endTime");
+  const watchedDate = useWatch({ control, name: "date" });
+  const watchedStart = useWatch({ control, name: "startTime" });
+  const watchedEnd = useWatch({ control, name: "endTime" });
   const duration = useMemo(
     () => formatDuration(watchedDate, watchedStart, watchedEnd),
     [watchedDate, watchedStart, watchedEnd],

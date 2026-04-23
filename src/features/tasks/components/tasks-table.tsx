@@ -6,6 +6,7 @@ import { formatDistanceToNowStrict } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { useMounted } from "@/lib/use-mounted";
 import { StatusBadge } from "./status-badge";
 import type { Task } from "../types";
 
@@ -137,11 +138,9 @@ function RowActionsMenu({
   onArchive?: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => setMounted(true), []);
+  const mounted = useMounted();
 
   useLayoutEffect(() => {
     if (!open || !btnRef.current) return;

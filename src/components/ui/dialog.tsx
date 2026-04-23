@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
+import { useMounted } from "@/lib/use-mounted";
 
 type DialogSize = "sm" | "md" | "lg";
 
@@ -27,9 +28,7 @@ export function Dialog({
   closeOnBackdrop?: boolean;
   showCloseButton?: boolean;
 }) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
+  const mounted = useMounted();
 
   useEffect(() => {
     if (!open) return;
