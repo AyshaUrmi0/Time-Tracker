@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { ApiErrors } from "@/lib/api-error";
+import { clickupTimeEntryService } from "@/server/services/clickup-time-entry.service";
 import type { SessionUser } from "@/types";
 import type { StartTimerInput } from "@/features/timer/timer.schema";
 
@@ -34,7 +35,7 @@ export const timerService = {
     }
 
     try {
-      return await prisma.$transaction(
+      const result = await prisma.$transaction(
         async (tx) => {
           const now = new Date();
 
@@ -69,6 +70,11 @@ export const timerService = {
         },
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
       );
+
+      if (result.stoppedPrevious) {
+        await clickupTimeEntryService.pushOnStop(result.stoppedPrevious.id);
+      }
+      return result;
     } catch (err) {
       if (err instanceof Prisma.PrismaClientKnownRequestError) {
         if (err.code === "P2002" || err.code === "P2034") {
@@ -89,7 +95,7 @@ export const timerService = {
     if (!running) throw ApiErrors.noActiveTimer();
 
     const now = new Date();
-    return prisma.timeEntry.update({
+    const stopped = await prisma.timeEntry.update({
       where: { id: running.id },
       data: {
         endTime: now,
@@ -97,5 +103,9 @@ export const timerService = {
       },
       include: timerInclude,
     });
+
+    await clickupTimeEntryService.pushOnStop(stopped.id);
+
+    return stopped;
   },
 };
