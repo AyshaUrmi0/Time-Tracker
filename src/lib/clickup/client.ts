@@ -3,14 +3,20 @@ import type { ClickUpUser } from "@/features/clickup/types";
 
 const CLICKUP_API_BASE = "https://api.clickup.com/api/v2";
 
+type ClickUpFetchOptions = {
+  method?: "GET" | "POST" | "PUT" | "DELETE";
+  query?: Record<string, string | number | boolean>;
+  body?: unknown;
+};
+
 async function clickupFetch<T>(
   path: string,
   token: string,
-  query?: Record<string, string | number | boolean>,
+  options: ClickUpFetchOptions = {},
 ): Promise<T> {
   const url = new URL(`${CLICKUP_API_BASE}${path}`);
-  if (query) {
-    for (const [k, v] of Object.entries(query)) {
+  if (options.query) {
+    for (const [k, v] of Object.entries(options.query)) {
       url.searchParams.set(k, String(v));
     }
   }
@@ -18,9 +24,10 @@ async function clickupFetch<T>(
   let res: Response;
   try {
     res = await fetch(url.toString(), {
-      method: "GET",
+      method: options.method ?? "GET",
       headers: { Authorization: token, "Content-Type": "application/json" },
       cache: "no-store",
+      body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
     });
   } catch (err) {
     throw ApiErrors.conflict(
@@ -113,7 +120,7 @@ export async function fetchClickUpSpaces(
   const json = await clickupFetch<ClickUpSpacesResponse>(
     `/team/${teamId}/space`,
     token,
-    { archived: false },
+    { query: { archived: false } },
   );
   return json.spaces.map((s) => ({ id: s.id, name: s.name }));
 }
@@ -141,7 +148,7 @@ export async function fetchClickUpFolders(
   const json = await clickupFetch<ClickUpFoldersResponse>(
     `/space/${spaceId}/folder`,
     token,
-    { archived: false },
+    { query: { archived: false } },
   );
   return json.folders.map((f) => ({
     id: f.id,
@@ -161,7 +168,7 @@ export async function fetchClickUpFolderlessLists(
   const json = await clickupFetch<ClickUpListsResponse>(
     `/space/${spaceId}/list`,
     token,
-    { archived: false },
+    { query: { archived: false } },
   );
   return json.lists.map((l) => ({ id: l.id, name: l.name }));
 }
@@ -195,7 +202,41 @@ export async function fetchClickUpTasksPage(
   const json = await clickupFetch<ClickUpTasksResponse>(
     `/list/${listId}/task`,
     token,
-    { archived: false, page, subtasks: true },
+    { query: { archived: false, page, subtasks: true } },
   );
   return { tasks: json.tasks ?? [], lastPage: json.last_page ?? false };
+}
+
+export type CreateClickUpTimeEntryInput = {
+  tid: string;
+  start: number;
+  duration: number;
+  description?: string;
+  billable?: boolean;
+};
+
+type ClickUpCreateTimeEntryResponse = {
+  data: { id: string };
+};
+
+export async function createClickUpTimeEntry(
+  token: string,
+  teamId: string,
+  input: CreateClickUpTimeEntryInput,
+): Promise<{ id: string }> {
+  const json = await clickupFetch<ClickUpCreateTimeEntryResponse>(
+    `/team/${teamId}/time_entries`,
+    token,
+    {
+      method: "POST",
+      body: {
+        tid: input.tid,
+        start: input.start,
+        duration: input.duration,
+        billable: input.billable ?? false,
+        ...(input.description ? { description: input.description } : {}),
+      },
+    },
+  );
+  return { id: json.data.id };
 }
