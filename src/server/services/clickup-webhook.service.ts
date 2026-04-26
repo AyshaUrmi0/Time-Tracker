@@ -222,6 +222,10 @@ export const clickupWebhookService = {
     rawBody: string,
     signatureHeader: string | null,
   ): Promise<ClickUpWebhookProcessResult> {
+    console.log(
+      `[clickup-webhook] received: bodyLen=${rawBody.length}, hasSig=${signatureHeader !== null}, bodyPreview=${rawBody.slice(0, 200)}`,
+    );
+
     if (!signatureHeader) {
       return { ok: false, skipped: "missing_signature" };
     }
@@ -230,11 +234,15 @@ export const clickupWebhookService = {
     try {
       payload = JSON.parse(rawBody) as WebhookPayload;
     } catch {
+      console.log("[clickup-webhook] skipped: invalid_json");
       return { ok: false, skipped: "invalid_json" };
     }
 
     const webhookId = payload.webhook_id;
-    if (!webhookId) return { ok: false, skipped: "missing_webhook_id" };
+    if (!webhookId) {
+      console.log("[clickup-webhook] skipped: missing_webhook_id");
+      return { ok: false, skipped: "missing_webhook_id" };
+    }
 
     const wh = await prisma.clickUpWebhook.findUnique({
       where: { clickupWebhookId: webhookId },
@@ -253,15 +261,27 @@ export const clickupWebhookService = {
         },
       },
     });
-    if (!wh) return { ok: false, skipped: "unknown_webhook" };
+    if (!wh) {
+      console.log(
+        `[clickup-webhook] skipped: unknown_webhook id=${webhookId}`,
+      );
+      return { ok: false, skipped: "unknown_webhook" };
+    }
 
     const secret = decrypt(wh.secretEncrypted, wh.secretIv);
     const computed = createHmac("sha256", secret)
       .update(rawBody)
       .digest("hex");
-    if (!safeEqualHex(computed, signatureHeader.trim().toLowerCase())) {
+    const sigNorm = signatureHeader.trim().toLowerCase();
+    if (!safeEqualHex(computed, sigNorm)) {
+      console.log(
+        `[clickup-webhook] skipped: bad_signature webhookId=${webhookId} sigGotPreview=${sigNorm.slice(0, 16)} sigExpectedPreview=${computed.slice(0, 16)}`,
+      );
       return { ok: false, skipped: "bad_signature" };
     }
+    console.log(
+      `[clickup-webhook] verified: webhookId=${webhookId} event=${payload.event} taskId=${payload.task_id}`,
+    );
 
     const eventId = deriveEventId(webhookId, payload, rawBody);
 
