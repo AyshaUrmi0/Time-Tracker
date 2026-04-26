@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useModal } from "@/contexts/ModalContext";
-import { useDisconnectClickUp } from "../clickup.queries";
+import { useDisconnectClickUp, useSyncClickUp } from "../clickup.queries";
 import type { ClickUpConnectionStatus } from "../types";
 
 function formatDateTime(iso: string): string {
@@ -20,6 +20,7 @@ export function ClickUpStatusCard({
   status: Extract<ClickUpConnectionStatus, { connected: true }>;
 }) {
   const disconnect = useDisconnectClickUp();
+  const sync = useSyncClickUp();
   const modal = useModal();
 
   async function handleDisconnect() {
@@ -50,14 +51,25 @@ export function ClickUpStatusCard({
             {status.clickupUserEmail}
           </p>
         </div>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={handleDisconnect}
-          loading={disconnect.isPending}
-        >
-          Disconnect
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            onClick={() => sync.mutate()}
+            loading={sync.isPending}
+            disabled={disconnect.isPending}
+          >
+            Sync now
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleDisconnect}
+            loading={disconnect.isPending}
+            disabled={sync.isPending}
+          >
+            Disconnect
+          </Button>
+        </div>
       </div>
 
       <dl className="grid grid-cols-1 gap-3 text-[13px] sm:grid-cols-3">

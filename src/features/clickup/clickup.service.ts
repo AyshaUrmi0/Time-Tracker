@@ -1,5 +1,5 @@
 import { apiFetch } from "@/lib/api-client";
-import type { ClickUpConnectionStatus } from "./types";
+import type { ClickUpConnectionStatus, ClickUpSyncResult } from "./types";
 import type { ConnectClickUpInput } from "./clickup.schema";
 
 export const clickupService = {
@@ -21,5 +21,12 @@ export const clickupService = {
       "/api/integrations/clickup",
       { method: "DELETE" },
     );
+  },
+
+  sync() {
+    return apiFetch<{ result: ClickUpSyncResult }>(
+      "/api/integrations/clickup/sync",
+      { method: "POST" },
+    ).then((r) => r.result);
   },
 };
