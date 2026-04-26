@@ -9,6 +9,7 @@ export default auth((req) => {
   if (
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/api/health") ||
+    pathname === "/api/integrations/clickup/webhook" ||
     pathname.startsWith("/_next") ||
     PUBLIC_PATHS.has(pathname)
   ) {
