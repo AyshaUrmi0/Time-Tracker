@@ -2,13 +2,19 @@
 
 import { useSyncExternalStore } from "react";
 
+let cachedNow = Date.now();
+
 function subscribeTick(callback: () => void): () => void {
-  const id = setInterval(callback, 1000);
+  cachedNow = Date.now();
+  const id = setInterval(() => {
+    cachedNow = Date.now();
+    callback();
+  }, 1000);
   return () => clearInterval(id);
 }
 
 const noopSubscribe = () => () => {};
-const getSnapshot = () => Date.now();
+const getSnapshot = () => cachedNow;
 const getServerSnapshot = () => 0;
 
 export function useLiveDuration(startTimeIso: string | undefined): number {
