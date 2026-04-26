@@ -18,6 +18,7 @@ const NAV: NavItem[] = [
   { href: "/calendar", label: "Calendar" },
   { href: "/reports", label: "Reports" },
   { href: "/team", label: "Team", adminOnly: true },
+  { href: "/settings", label: "Settings" },
 ];
 
 export function TopNav() {
