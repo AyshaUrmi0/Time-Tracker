@@ -16,3 +16,13 @@ export type ClickUpUser = {
   color: string | null;
   profilePicture: string | null;
 };
+
+export type ClickUpSyncResult = {
+  teamsScanned: number;
+  listsScanned: number;
+  tasksImported: number;
+  tasksUpdated: number;
+  errors: string[];
+  startedAt: string;
+  finishedAt: string;
+};
