@@ -26,3 +26,32 @@ export type ClickUpSyncResult = {
   startedAt: string;
   finishedAt: string;
 };
+
+export type ClickUpWebhookRegisterResult = {
+  endpoint: string;
+  events: string[];
+  webhooks: Array<{
+    teamId: string;
+    teamName: string;
+    webhookId: string | null;
+    events: string[];
+    endpoint: string;
+    alreadyRegistered: boolean;
+    error?: string;
+  }>;
+};
+
+export type ClickUpWebhookUnregisterResult = {
+  removed: number;
+  failures: Array<{ webhookId: string; error: string }>;
+};
+
+export type ClickUpWebhookProcessResult =
+  | { ok: false; skipped: string }
+  | {
+      ok: true;
+      eventId?: string;
+      action?: string;
+      detail?: string;
+      deduped?: boolean;
+    };

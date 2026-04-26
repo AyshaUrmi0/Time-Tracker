@@ -9,6 +9,7 @@ import {
   fetchClickUpTeams,
   type ClickUpListMeta,
   type ClickUpTask,
+  type ClickUpTaskDetail,
 } from "@/lib/clickup/client";
 import type { ClickUpSyncResult } from "@/features/clickup/types";
 import type { SessionUser } from "@/types";
@@ -154,6 +155,80 @@ async function syncList(
     if (lastPage || totalScanned >= MAX_TASKS_PER_LIST) break;
     page++;
   }
+}
+
+export type UpsertSingleTaskResult =
+  | { status: "imported"; localTaskId: string }
+  | { status: "updated"; localTaskId: string }
+  | { status: "skipped"; reason: string };
+
+export async function upsertSingleTaskFromClickUp(
+  detail: ClickUpTaskDetail,
+  syncerId: string,
+): Promise<UpsertSingleTaskResult> {
+  if (!detail.list?.id) return { status: "skipped", reason: "missing_list" };
+  if (!detail.team_id) return { status: "skipped", reason: "missing_team" };
+
+  const existing = await prisma.task.findUnique({
+    where: { clickupTaskId: detail.id },
+    select: {
+      id: true,
+      clickupSpaceName: true,
+      clickupFolderId: true,
+      clickupFolderName: true,
+      clickupListName: true,
+    },
+  });
+
+  const localUsers = await prisma.user.findMany({
+    where: { clickupUserId: { not: null } },
+    select: { id: true, clickupUserId: true },
+  });
+  const userIdByClickup = new Map<number, string>();
+  for (const u of localUsers) {
+    if (u.clickupUserId !== null) userIdByClickup.set(u.clickupUserId, u.id);
+  }
+  const matchedAssignee = detail.assignees?.find((a) =>
+    userIdByClickup.has(a.id),
+  );
+  const assignedToId = matchedAssignee
+    ? (userIdByClickup.get(matchedAssignee.id) ?? null)
+    : null;
+
+  const statusMap = mapStatus(detail.status);
+
+  const data = {
+    title: detail.name?.trim() || "(untitled)",
+    description: detail.description ?? null,
+    status: statusMap.status,
+    assignedToId,
+    source: "CLICKUP" as const,
+    clickupTaskId: detail.id,
+    clickupWorkspaceId: detail.team_id,
+    clickupSpaceId: detail.space?.id ?? null,
+    clickupSpaceName: detail.space?.name ?? existing?.clickupSpaceName ?? null,
+    clickupFolderId: detail.folder?.id ?? existing?.clickupFolderId ?? null,
+    clickupFolderName:
+      detail.folder?.name ?? existing?.clickupFolderName ?? null,
+    clickupListId: detail.list.id,
+    clickupListName: detail.list.name ?? existing?.clickupListName ?? "",
+    clickupUrl: detail.url ?? null,
+    clickupStatus: statusMap.name,
+    clickupStatusColor: statusMap.color,
+    clickupPriority: mapPriority(detail.priority),
+    clickupDueDate: parseEpochMs(detail.due_date),
+    clickupTags: (detail.tags ?? []).map((t) => t.name),
+    clickupLastSyncedAt: new Date(),
+  };
+
+  if (existing) {
+    await prisma.task.update({ where: { id: existing.id }, data });
+    return { status: "updated", localTaskId: existing.id };
+  }
+  const created = await prisma.task.create({
+    data: { ...data, createdById: syncerId },
+  });
+  return { status: "imported", localTaskId: created.id };
 }
 
 export const clickupSyncService = {

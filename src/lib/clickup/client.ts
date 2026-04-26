@@ -189,6 +189,13 @@ export type ClickUpTask = {
   url?: string | null;
 };
 
+export type ClickUpTaskDetail = ClickUpTask & {
+  team_id?: string | null;
+  list?: { id: string; name?: string | null } | null;
+  folder?: { id: string; name?: string | null } | null;
+  space?: { id: string; name?: string | null } | null;
+};
+
 type ClickUpTasksResponse = {
   tasks: ClickUpTask[];
   last_page?: boolean;
@@ -218,6 +225,56 @@ export type CreateClickUpTimeEntryInput = {
 type ClickUpCreateTimeEntryResponse = {
   data: { id: string };
 };
+
+export async function fetchClickUpTaskDetail(
+  token: string,
+  taskId: string,
+): Promise<ClickUpTaskDetail | null> {
+  try {
+    return await clickupFetch<ClickUpTaskDetail>(`/task/${taskId}`, token);
+  } catch (err) {
+    if (err instanceof Error && err.message.includes("404")) return null;
+    throw err;
+  }
+}
+
+export type CreateClickUpWebhookInput = {
+  endpoint: string;
+  events: string[];
+};
+
+type ClickUpCreateWebhookResponse = {
+  id: string;
+  webhook: {
+    id: string;
+    secret: string;
+  };
+};
+
+export async function createClickUpWebhookOnClickUp(
+  token: string,
+  teamId: string,
+  input: CreateClickUpWebhookInput,
+): Promise<{ id: string; secret: string }> {
+  const json = await clickupFetch<ClickUpCreateWebhookResponse>(
+    `/team/${teamId}/webhook`,
+    token,
+    {
+      method: "POST",
+      body: { endpoint: input.endpoint, events: input.events },
+    },
+  );
+  return { id: json.webhook.id, secret: json.webhook.secret };
+}
+
+export async function deleteClickUpWebhookOnClickUp(
+  token: string,
+  webhookId: string,
+): Promise<void> {
+  await clickupFetch<unknown>(`/webhook/${webhookId}`, token, {
+    method: "DELETE",
+  });
+}
 
 export async function createClickUpTimeEntry(
   token: string,
