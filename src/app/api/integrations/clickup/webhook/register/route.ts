@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { requireAuth } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { handleApiError } from "@/lib/api-error";
 import { clickupWebhookService } from "@/server/services/clickup-webhook.service";
 
@@ -17,7 +17,7 @@ function buildEndpoint(req: NextRequest): string {
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await requireAuth();
+    const user = await requireAdmin();
     const endpoint = buildEndpoint(req);
     const result = await clickupWebhookService.register(user, endpoint);
     return NextResponse.json({ result });
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE() {
   try {
-    const user = await requireAuth();
+    const user = await requireAdmin();
     const result = await clickupWebhookService.unregister(user);
     return NextResponse.json({ result });
   } catch (err) {
