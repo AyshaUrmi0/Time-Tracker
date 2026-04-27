@@ -80,6 +80,16 @@ export type ClickUpTimeEntriesPullResult = {
   errors: string[];
 };
 
+export type ClickUpTaskTimeEntriesReconcileResult = {
+  status: "ok" | "skipped";
+  reason?: string;
+  imported: number;
+  updated: number;
+  deletedLocally: number;
+  skippedNoUser: number;
+  errors: string[];
+};
+
 export type ClickUpWebhookProcessResult =
   | { ok: false; skipped: string }
   | {
