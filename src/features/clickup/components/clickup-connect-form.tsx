@@ -58,10 +58,10 @@ export function ClickUpConnectForm({
       className="flex flex-col gap-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-sm)]"
     >
       <div>
-        <h2 className="text-[15px] font-semibold text-[var(--text-primary)]">
+        <h2 className="text-[17px] font-semibold text-[var(--text-primary)]">
           {reconnectReason ? "Reconnect ClickUp" : "Connect ClickUp"}
         </h2>
-        <p className="mt-1 text-[13px] text-[var(--text-secondary)]">
+        <p className="mt-1 text-[15px] text-[var(--text-secondary)]">
           Paste your ClickUp personal API token. We&apos;ll verify it and store
           it encrypted. You can find or generate one in ClickUp under{" "}
           <span className="font-medium text-[var(--text-primary)]">
@@ -71,7 +71,7 @@ export function ClickUpConnectForm({
         </p>
       </div>
       {reconnectReason && (
-        <div className="rounded-lg border border-[var(--danger)]/20 bg-[var(--danger-soft)] px-3 py-2 text-[12px] text-[var(--danger)]">
+        <div className="rounded-lg border border-[var(--danger)]/20 bg-[var(--danger-soft)] px-3 py-2 text-[14px] text-[var(--danger)]">
           {reconnectReason}
         </div>
       )}

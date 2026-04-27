@@ -45,7 +45,7 @@ export function ExportMenu({ summary }: Props) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         disabled={!summary}
-        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-[13px] font-medium text-[var(--text-primary)] shadow-[var(--shadow-sm)] transition-colors duration-150 hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-[15px] font-medium text-[var(--text-primary)] shadow-[var(--shadow-sm)] transition-colors duration-150 hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
       >
         <svg
           width="15"
@@ -83,7 +83,7 @@ export function ExportMenu({ summary }: Props) {
           <button
             type="button"
             onClick={handlePdf}
-            className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-[13px] text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-hover)]"
+            className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-[15px] text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-hover)]"
           >
             <svg
               width="16"
@@ -106,7 +106,7 @@ export function ExportMenu({ summary }: Props) {
           <button
             type="button"
             onClick={handleCsv}
-            className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-[13px] text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-hover)]"
+            className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-[15px] text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-hover)]"
           >
             <svg
               width="16"
@@ -147,7 +147,7 @@ export function ShareButton({ from, to }: { from: string; to: string }) {
     <button
       type="button"
       onClick={handleShare}
-      className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-[13px] font-medium text-[var(--text-primary)] shadow-[var(--shadow-sm)] transition-colors duration-150 hover:bg-[var(--surface-hover)]"
+      className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-[15px] font-medium text-[var(--text-primary)] shadow-[var(--shadow-sm)] transition-colors duration-150 hover:bg-[var(--surface-hover)]"
     >
       <svg
         width="14"

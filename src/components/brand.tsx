@@ -37,7 +37,7 @@ export function BrandLockup() {
   return (
     <div className="flex items-center gap-2">
       <BrandMark />
-      <span className="text-[15px] font-semibold tracking-tight text-[var(--text-primary)]">
+      <span className="text-[17px] font-semibold tracking-tight text-[var(--text-primary)]">
         Time Tracker
       </span>
     </div>

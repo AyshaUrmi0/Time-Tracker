@@ -16,16 +16,16 @@ export function SettingsPageView() {
   return (
     <div className="mx-auto max-w-[800px]">
       <div className="mb-6">
-        <h1 className="text-[22px] font-semibold tracking-tight text-[var(--text-primary)]">
+        <h1 className="text-[24px] font-semibold tracking-tight text-[var(--text-primary)]">
           Settings
         </h1>
-        <p className="mt-1 text-[13px] text-[var(--text-secondary)]">
+        <p className="mt-1 text-[15px] text-[var(--text-secondary)]">
           Manage integrations and personal preferences.
         </p>
       </div>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-[13px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+        <h2 className="text-[15px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
           Integrations
         </h2>
 

@@ -27,7 +27,7 @@ export function TasksFilters({
   return (
     <div className="flex flex-wrap items-center gap-3">
       <div className="flex items-center gap-2">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+        <span className="text-[13px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
           Status
         </span>
         <Select
@@ -42,7 +42,7 @@ export function TasksFilters({
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+        <span className="text-[13px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
           Assignee
         </span>
         <Select
@@ -60,7 +60,7 @@ export function TasksFilters({
       </div>
 
       <div className="ml-auto flex items-center gap-2">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+        <span className="text-[13px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
           Show
         </span>
         <SegmentedTabs

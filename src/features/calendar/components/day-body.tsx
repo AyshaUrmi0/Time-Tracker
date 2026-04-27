@@ -145,7 +145,7 @@ export function DayBody({
             aria-label={canCreate ? `Log time at ${hour}:00 on ${day.date}` : undefined}
           >
             {canCreate && (
-              <span className="invisible flex h-full items-center justify-center text-[10px] font-medium text-[var(--accent-hover)] group-hover:visible">
+              <span className="invisible flex h-full items-center justify-center text-[12px] font-medium text-[var(--accent-hover)] group-hover:visible">
                 + Log time
               </span>
             )}

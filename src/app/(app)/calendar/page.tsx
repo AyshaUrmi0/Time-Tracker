@@ -185,7 +185,7 @@ export default function CalendarPage() {
       : "Calendar";
 
   const metaLine = week ? (
-    <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-[var(--text-secondary)]">
+    <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px] text-[var(--text-secondary)]">
       <span className="tabular font-medium text-[var(--text-primary)]">
         {formatDurationSec(week.totalSeconds)}
       </span>
@@ -210,12 +210,12 @@ export default function CalendarPage() {
     <div className="mx-auto max-w-[1400px]">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-[22px] font-semibold tracking-tight text-[var(--text-primary)]">
+          <h1 className="text-[24px] font-semibold tracking-tight text-[var(--text-primary)]">
             {pageTitle}
           </h1>
           <div className="mt-1">
             {metaLine ?? (
-              <span className="text-[13px] text-[var(--text-secondary)]">
+              <span className="text-[15px] text-[var(--text-secondary)]">
                 Your week at a glance.
               </span>
             )}
@@ -282,7 +282,7 @@ export default function CalendarPage() {
                     <line x1="3" y1="10" x2="21" y2="10" />
                   </svg>
                 </div>
-                <p className="text-[14px] font-semibold text-[var(--text-primary)]">
+                <p className="text-[16px] font-semibold text-[var(--text-primary)]">
                   Nothing tracked this week
                 </p>
                 <p className="mt-1 text-[12.5px] text-[var(--text-secondary)]">
