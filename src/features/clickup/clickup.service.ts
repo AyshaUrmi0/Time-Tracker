@@ -71,4 +71,11 @@ export const clickupService = {
       "/api/integrations/clickup/webhook/health",
     ).then((r) => r.result);
   },
+
+  resetWebhookHealth() {
+    return apiFetch<{ result: { reset: number } }>(
+      "/api/integrations/clickup/webhook/reset",
+      { method: "POST" },
+    ).then((r) => r.result);
+  },
 };

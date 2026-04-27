@@ -30,6 +30,8 @@ const DEFAULT_EVENTS = [
   "taskTagUpdated",
 ];
 
+const MAX_WEBHOOK_FAILURES = 50;
+
 type WebhookPayload = {
   event?: string;
   task_id?: string;
@@ -88,6 +90,19 @@ async function handleEvent(
 }
 
 export const clickupWebhookService = {
+  async resetHealth(actor: SessionUser): Promise<{ reset: number }> {
+    const conn = await prisma.clickUpConnection.findUnique({
+      where: { userId: actor.userId },
+      select: { id: true },
+    });
+    if (!conn) return { reset: 0 };
+    const result = await prisma.clickUpWebhook.updateMany({
+      where: { connectionId: conn.id },
+      data: { failureCount: 0, isHealthy: true, lastFailedAt: null },
+    });
+    return { reset: result.count };
+  },
+
   async getHealth(actor: SessionUser): Promise<ClickUpWebhookHealthResult> {
     const conn = await prisma.clickUpConnection.findUnique({
       where: { userId: actor.userId },
@@ -291,6 +306,7 @@ export const clickupWebhookService = {
         secretEncrypted: true,
         secretIv: true,
         clickupTeamId: true,
+        failureCount: true,
         connection: {
           select: {
             userId: true,
@@ -306,6 +322,13 @@ export const clickupWebhookService = {
         `[clickup-webhook] skipped: unknown_webhook id=${webhookId}`,
       );
       return { ok: false, skipped: "unknown_webhook" };
+    }
+
+    if (wh.failureCount >= MAX_WEBHOOK_FAILURES) {
+      console.warn(
+        `[clickup-webhook] skipped: auto_disabled webhookId=${webhookId} failureCount=${wh.failureCount}`,
+      );
+      return { ok: false, skipped: "auto_disabled" };
     }
 
     const secret = decrypt(wh.secretEncrypted, wh.secretIv);
