@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useModal } from "@/contexts/ModalContext";
-import { useDisconnectClickUp, useSyncClickUp } from "../clickup.queries";
+import { useDisconnectClickUp } from "../clickup.queries";
 import type { ClickUpConnectionStatus } from "../types";
 
 function formatDateTime(iso: string): string {
@@ -20,7 +20,6 @@ export function ClickUpStatusCard({
   status: Extract<ClickUpConnectionStatus, { connected: true }>;
 }) {
   const disconnect = useDisconnectClickUp();
-  const sync = useSyncClickUp();
   const modal = useModal();
 
   async function handleDisconnect() {
@@ -51,28 +50,17 @@ export function ClickUpStatusCard({
             {status.clickupUserEmail}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            onClick={() => sync.mutate()}
-            loading={sync.isPending}
-            disabled={disconnect.isPending}
-          >
-            Sync now
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleDisconnect}
-            loading={disconnect.isPending}
-            disabled={sync.isPending}
-          >
-            Disconnect
-          </Button>
-        </div>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={handleDisconnect}
+          loading={disconnect.isPending}
+        >
+          Disconnect
+        </Button>
       </div>
 
-      <dl className="grid grid-cols-1 gap-3 text-[15px] sm:grid-cols-3">
+      <dl className="grid grid-cols-1 gap-3 text-[15px] sm:grid-cols-2">
         <div>
           <dt className="text-[14px] text-[var(--text-muted)]">ClickUp user ID</dt>
           <dd className="mt-0.5 font-medium text-[var(--text-primary)]">
@@ -85,17 +73,11 @@ export function ClickUpStatusCard({
             {formatDateTime(status.connectedAt)}
           </dd>
         </div>
-        <div>
-          <dt className="text-[14px] text-[var(--text-muted)]">Last sync</dt>
-          <dd className="mt-0.5 font-medium text-[var(--text-primary)]">
-            {status.lastSyncAt ? formatDateTime(status.lastSyncAt) : "—"}
-          </dd>
-        </div>
       </dl>
 
       {status.lastError && (
         <div className="rounded-lg border border-[var(--danger)]/20 bg-[var(--danger-soft)] px-3 py-2 text-[14px] text-[var(--danger)]">
-          Last sync error: {status.lastError}
+          {status.lastError}
         </div>
       )}
     </div>

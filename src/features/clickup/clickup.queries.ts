@@ -38,35 +38,6 @@ export function useDisconnectClickUp() {
   });
 }
 
-export function useSyncClickUp() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: () => clickupService.sync(),
-    onSuccess: (result) => {
-      const { tasksImported, tasksUpdated, errors } = result;
-      let summary: string;
-      if (tasksImported === 0 && tasksUpdated === 0) {
-        summary = "No tasks found in ClickUp.";
-      } else if (tasksImported > 0 && tasksUpdated > 0) {
-        summary = `Imported ${tasksImported}, refreshed ${tasksUpdated}.`;
-      } else if (tasksImported > 0) {
-        summary = `Imported ${tasksImported} task${tasksImported === 1 ? "" : "s"}.`;
-      } else {
-        summary = `Refreshed ${tasksUpdated} task${tasksUpdated === 1 ? "" : "s"}.`;
-      }
-
-      if (errors.length > 0) {
-        toast.info(`${summary} (${errors.length} item${errors.length === 1 ? "" : "s"} skipped)`);
-      } else {
-        toast.success(summary);
-      }
-      qc.invalidateQueries({ queryKey: CLICKUP_STATUS_KEY });
-      qc.invalidateQueries({ queryKey: ["tasks"] });
-    },
-    onError: (err) => toast.error("Sync failed. Please try again.", err),
-  });
-}
-
 export function useSyncClickUpMembers() {
   return useMutation({
     mutationFn: () => clickupService.syncMembers(),
