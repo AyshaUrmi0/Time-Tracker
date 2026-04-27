@@ -96,12 +96,12 @@ export function Dialog({
         {(title || description) && (
           <div className="shrink-0 border-b border-[var(--border)] px-5 py-4 pr-12">
             {title && (
-              <h2 className="text-[15px] font-semibold tracking-tight text-[var(--text-primary)]">
+              <h2 className="text-[17px] font-semibold tracking-tight text-[var(--text-primary)]">
                 {title}
               </h2>
             )}
             {description && (
-              <p className="mt-1 text-[13px] text-[var(--text-secondary)]">
+              <p className="mt-1 text-[15px] text-[var(--text-secondary)]">
                 {description}
               </p>
             )}

@@ -26,7 +26,7 @@ type FormValues = {
 };
 
 const selectClass =
-  "h-10 w-full appearance-none rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 disabled:opacity-60";
+  "h-10 w-full appearance-none rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-base text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 disabled:opacity-60";
 
 export function EditUserModal({ open, onClose, user, currentUserId }: Props) {
   const mutation = useUpdateAdminUser();
@@ -116,7 +116,7 @@ export function EditUserModal({ open, onClose, user, currentUserId }: Props) {
         </FormField>
 
         {user && (
-          <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-hover)] px-3 py-2 text-[12px] text-[var(--text-muted)]">
+          <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-hover)] px-3 py-2 text-[14px] text-[var(--text-muted)]">
             Email: <span className="text-[var(--text-secondary)]">{user.email}</span>
           </div>
         )}

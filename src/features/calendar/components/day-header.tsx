@@ -27,11 +27,11 @@ export function DayHeader({ day, isToday, isLast }: Props) {
       </span>
       <div className="flex items-center gap-2">
         {isToday ? (
-          <span className="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-[var(--accent)] px-1.5 text-[13px] font-semibold text-white">
+          <span className="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-[var(--accent)] px-1.5 text-[15px] font-semibold text-white">
             {dayOfMonthLabel(day.date)}
           </span>
         ) : (
-          <span className="text-[16px] font-semibold tracking-tight text-[var(--text-primary)]">
+          <span className="text-[18px] font-semibold tracking-tight text-[var(--text-primary)]">
             {dayOfMonthLabel(day.date)}
           </span>
         )}

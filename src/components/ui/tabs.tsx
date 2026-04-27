@@ -34,7 +34,7 @@ export function SegmentedTabs<T extends string>({
             aria-selected={active}
             onClick={() => onChange(opt.value)}
             className={cn(
-              "rounded-md px-3 py-1 text-[12px] font-medium transition-colors duration-150",
+              "rounded-md px-3 py-1 text-[14px] font-medium transition-colors duration-150",
               active
                 ? "bg-[var(--surface-hover)] text-[var(--text-primary)]"
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]",

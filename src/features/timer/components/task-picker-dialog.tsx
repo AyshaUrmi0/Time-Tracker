@@ -103,7 +103,7 @@ function TaskPickerContent({
             <Skeleton className="h-8 w-full" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="px-4 py-8 text-center text-[13px] text-[var(--text-muted)]">
+          <div className="px-4 py-8 text-center text-[15px] text-[var(--text-muted)]">
             {query
               ? `No tasks match "${query}".`
               : "No active tasks. Create one first."}
@@ -120,7 +120,7 @@ function TaskPickerContent({
               return (
                 <li key={task.id}>
                   {showHeader && (
-                    <div className="bg-[var(--surface-hover)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                    <div className="bg-[var(--surface-hover)] px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
                       {groupLabel(rank)}
                     </div>
                   )}
@@ -138,16 +138,16 @@ function TaskPickerContent({
                     }
                   >
                     <StatusBadge status={task.status} />
-                    <span className="min-w-0 flex-1 truncate text-[13px] text-[var(--text-primary)]">
+                    <span className="min-w-0 flex-1 truncate text-[15px] text-[var(--text-primary)]">
                       {task.title}
                     </span>
                     {isCurrent && (
-                      <span className="text-[11px] font-medium uppercase tracking-wider text-[var(--text-muted)]">
+                      <span className="text-[13px] font-medium uppercase tracking-wider text-[var(--text-muted)]">
                         tracking
                       </span>
                     )}
                     {task.assignedTo ? (
-                      <span className="inline-flex items-center gap-1.5 text-[11px] text-[var(--text-muted)]">
+                      <span className="inline-flex items-center gap-1.5 text-[13px] text-[var(--text-muted)]">
                         <Avatar
                           name={task.assignedTo.name}
                           id={task.assignedTo.id}
@@ -163,7 +163,7 @@ function TaskPickerContent({
         )}
       </div>
 
-      <p className="mt-3 text-[11px] text-[var(--text-muted)]">
+      <p className="mt-3 text-[13px] text-[var(--text-muted)]">
         ↑/↓ to navigate, Enter to start, Esc to close.
       </p>
     </Dialog>

@@ -10,10 +10,10 @@ export function TopTasks({ tasks }: Props) {
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-sm)]">
       <header className="border-b border-[var(--border)] px-4 py-3">
-        <h2 className="text-[13px] font-semibold text-[var(--text-primary)]">
+        <h2 className="text-[15px] font-semibold text-[var(--text-primary)]">
           Top tasks this week
         </h2>
-        <p className="text-[11px] text-[var(--text-muted)]">
+        <p className="text-[13px] text-[var(--text-muted)]">
           By total time tracked
         </p>
       </header>
@@ -32,10 +32,10 @@ export function TopTasks({ tasks }: Props) {
             return (
               <li key={task.taskId} className="px-4 py-3">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-[var(--text-primary)]">
+                  <span className="min-w-0 flex-1 truncate text-[15px] font-medium text-[var(--text-primary)]">
                     {task.title}
                   </span>
-                  <span className="tabular text-[12px] font-semibold text-[var(--text-secondary)]">
+                  <span className="tabular text-[14px] font-semibold text-[var(--text-secondary)]">
                     {formatDurationSec(task.seconds)}
                   </span>
                 </div>

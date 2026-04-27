@@ -79,14 +79,14 @@ export default function DashboardPage() {
     <div className="mx-auto max-w-[1200px]">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-[22px] font-semibold tracking-tight text-[var(--text-primary)]">
+          <h1 className="text-[24px] font-semibold tracking-tight text-[var(--text-primary)]">
             {isTeamView
               ? "Team dashboard"
               : viewingLabel
                 ? `${viewingLabel}'s dashboard`
                 : `Welcome back, ${userName.split(" ")[0] || userName}`}
           </h1>
-          <p className="mt-1 text-[13px] text-[var(--text-secondary)]">
+          <p className="mt-1 text-[15px] text-[var(--text-secondary)]">
             {isTeamView
               ? "Totals and activity across your team."
               : viewingLabel
@@ -153,7 +153,7 @@ export default function DashboardPage() {
 
           <section className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-[13px] font-semibold text-[var(--text-primary)]">
+              <h2 className="text-[15px] font-semibold text-[var(--text-primary)]">
                 Activity
               </h2>
               <DateRangePicker

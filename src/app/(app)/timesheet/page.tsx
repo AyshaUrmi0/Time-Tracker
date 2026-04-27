@@ -98,10 +98,10 @@ export default function TimesheetPage() {
     <div className="mx-auto max-w-[1100px]">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-[22px] font-semibold tracking-tight text-[var(--text-primary)]">
+          <h1 className="text-[24px] font-semibold tracking-tight text-[var(--text-primary)]">
             Timesheet
           </h1>
-          <p className="mt-1 text-[13px] text-[var(--text-secondary)]">
+          <p className="mt-1 text-[15px] text-[var(--text-secondary)]">
             Review, edit, and log time entries manually.
           </p>
         </div>
@@ -141,7 +141,7 @@ export default function TimesheetPage() {
             <select
               value={userFilter}
               onChange={(e) => setUserFilter(e.target.value)}
-              className="h-8 appearance-none rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 text-[12px] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
+              className="h-8 appearance-none rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 text-[14px] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
             >
               <option value="me">My entries</option>
               <option value="all">All team</option>
@@ -152,9 +152,9 @@ export default function TimesheetPage() {
               ))}
             </select>
           )}
-          <div className="text-[12px] text-[var(--text-muted)]">
+          <div className="text-[14px] text-[var(--text-muted)]">
             Total{" "}
-            <span className="tabular ml-1 text-[13px] font-semibold text-[var(--text-primary)]">
+            <span className="tabular ml-1 text-[15px] font-semibold text-[var(--text-primary)]">
               {formatDurationSec(totalSec)}
             </span>
           </div>
@@ -227,7 +227,7 @@ function RangeTab({
       type="button"
       onClick={() => onChange(value)}
       className={
-        "rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors duration-150 " +
+        "rounded-md px-3 py-1.5 text-[14px] font-medium transition-colors duration-150 " +
         (active
           ? "bg-[var(--surface-hover)] text-[var(--text-primary)]"
           : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]")

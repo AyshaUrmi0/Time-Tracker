@@ -29,7 +29,7 @@ export function ReportTabs({ value, onChange }: Props) {
             role="tab"
             aria-selected={active}
             onClick={() => onChange(tab.value)}
-            className={`h-8 rounded-md px-4 text-[13px] font-medium transition-colors duration-150 ${
+            className={`h-8 rounded-md px-4 text-[15px] font-medium transition-colors duration-150 ${
               active
                 ? "bg-[var(--accent-soft)] text-[var(--accent-hover)]"
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"

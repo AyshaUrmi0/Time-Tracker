@@ -278,7 +278,7 @@ export function EntryFormDialog({
             id="taskId"
             autoFocus={!readOnly}
             disabled={readOnly || tasksQuery.isLoading}
-            className="h-10 w-full appearance-none rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 disabled:opacity-60"
+            className="h-10 w-full appearance-none rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-base text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 disabled:opacity-60"
             {...register("taskId")}
           >
             <option value="">Select a task…</option>
@@ -361,8 +361,8 @@ export function EntryFormDialog({
         </div>
 
         <div className="flex items-center justify-between rounded-lg border border-[var(--border)] bg-[var(--surface-hover)] px-3 py-2">
-          <span className="text-[12px] text-[var(--text-secondary)]">Duration</span>
-          <span className="tabular text-[13px] font-semibold text-[var(--text-primary)]">
+          <span className="text-[14px] text-[var(--text-secondary)]">Duration</span>
+          <span className="tabular text-[15px] font-semibold text-[var(--text-primary)]">
             {duration}
           </span>
         </div>

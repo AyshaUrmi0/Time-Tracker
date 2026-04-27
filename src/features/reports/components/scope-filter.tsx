@@ -35,7 +35,7 @@ export function ScopeFilter({ value, onChange, users }: Props) {
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="h-8 appearance-none bg-transparent py-1 pr-4 text-[13px] font-medium text-[var(--text-primary)] focus:outline-none"
+          className="h-8 appearance-none bg-transparent py-1 pr-4 text-[15px] font-medium text-[var(--text-primary)] focus:outline-none"
         >
           <option value="team">All Members</option>
           {users?.map((u) => (
@@ -64,7 +64,7 @@ export function ScopeFilter({ value, onChange, users }: Props) {
         </svg>
         <select
           disabled
-          className="h-8 cursor-not-allowed appearance-none bg-transparent py-1 pr-4 text-[13px] font-medium text-[var(--text-primary)] focus:outline-none"
+          className="h-8 cursor-not-allowed appearance-none bg-transparent py-1 pr-4 text-[15px] font-medium text-[var(--text-primary)] focus:outline-none"
         >
           <option>All Teams</option>
         </select>

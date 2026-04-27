@@ -95,10 +95,10 @@ export default function TasksPage() {
       <div className="min-w-0 flex-1">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-[22px] font-semibold tracking-tight text-[var(--text-primary)]">
+            <h1 className="text-[24px] font-semibold tracking-tight text-[var(--text-primary)]">
               Tasks
             </h1>
-            <p className="mt-1 text-[13px] text-[var(--text-secondary)]">
+            <p className="mt-1 text-[15px] text-[var(--text-secondary)]">
               Create, assign, and archive work across your team.
             </p>
           </div>
@@ -140,10 +140,10 @@ export default function TasksPage() {
               <path d="M12 16v-4M12 8h.01" />
             </svg>
             <div>
-              <p className="text-[13px] font-semibold text-[var(--accent-hover)]">
+              <p className="text-[15px] font-semibold text-[var(--accent-hover)]">
                 Admin view
               </p>
-              <p className="text-[12px] text-[var(--text-secondary)]">
+              <p className="text-[14px] text-[var(--text-secondary)]">
                 You can edit or archive any task. Members can only change tasks they
                 created.
               </p>

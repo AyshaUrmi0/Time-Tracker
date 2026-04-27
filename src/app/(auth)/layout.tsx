@@ -36,19 +36,19 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
                 <path d="M12 7v5l3 2" />
               </svg>
             </div>
-            <span className="text-[13px] font-medium tracking-tight text-white/80">
+            <span className="text-[15px] font-medium tracking-tight text-white/80">
               Time Tracker
             </span>
           </div>
 
           <div className="max-w-md">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
+            <p className="text-[13px] font-semibold uppercase tracking-[0.18em] text-white/70">
               Built for focus
             </p>
-            <h2 className="mt-3 text-[32px] font-semibold leading-tight tracking-tight">
+            <h2 className="mt-3 text-[34px] font-semibold leading-tight tracking-tight">
               Track the hours that matter.
             </h2>
-            <p className="mt-3 text-[14px] leading-relaxed text-white/70">
+            <p className="mt-3 text-[16px] leading-relaxed text-white/70">
               A quiet, keyboard-first timer with the reports you actually need —
               no screenshots, no micromanagement.
             </p>

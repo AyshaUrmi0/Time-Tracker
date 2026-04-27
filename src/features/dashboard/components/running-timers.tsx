@@ -33,7 +33,7 @@ export function RunningTimers({ timers, showUser }: Props) {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--accent)] opacity-60" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--accent)]" />
           </span>
-          <h2 className="text-[13px] font-semibold text-[var(--accent-hover)]">
+          <h2 className="text-[15px] font-semibold text-[var(--accent-hover)]">
             {showUser
               ? `${timers.length} active ${timers.length === 1 ? "timer" : "timers"}`
               : "Tracking now"}
@@ -54,16 +54,16 @@ export function RunningTimers({ timers, showUser }: Props) {
               />
             )}
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[13px] font-medium text-[var(--text-primary)]">
+              <p className="truncate text-[15px] font-medium text-[var(--text-primary)]">
                 {timer.task.title}
               </p>
               {showUser && timer.user && (
-                <p className="text-[11px] text-[var(--text-muted)]">
+                <p className="text-[13px] text-[var(--text-muted)]">
                   {timer.user.name}
                 </p>
               )}
             </div>
-            <span className="tabular text-[14px] font-semibold text-[var(--accent-hover)]">
+            <span className="tabular text-[16px] font-semibold text-[var(--accent-hover)]">
               {formatDurationHM(secondsSince(timer.startTime, now))}
             </span>
           </li>

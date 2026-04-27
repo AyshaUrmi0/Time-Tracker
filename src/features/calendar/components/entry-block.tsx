@@ -71,7 +71,7 @@ export function EntryBlock({ entry, showUser, onClick, style }: Props) {
       <div className="mt-auto flex items-center gap-1 pt-0.5">
         {showUser && entry.user && (
           <span
-            className="flex h-3.5 shrink-0 items-center justify-center rounded-sm px-1 text-[9px] font-semibold leading-none"
+            className="flex h-3.5 shrink-0 items-center justify-center rounded-sm px-1 text-[11px] font-semibold leading-none"
             style={{
               color: text,
               backgroundColor: running
@@ -83,7 +83,7 @@ export function EntryBlock({ entry, showUser, onClick, style }: Props) {
           </span>
         )}
         <span
-          className="tabular truncate text-[10px] leading-tight"
+          className="tabular truncate text-[12px] leading-tight"
           style={{ color: text, opacity: 0.85 }}
         >
           {entry.durationSeconds != null

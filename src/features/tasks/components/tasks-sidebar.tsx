@@ -58,7 +58,7 @@ export function TasksSidebar({ value, onChange, tasks, currentUser }: Props) {
   return (
     <aside className="hidden w-[220px] shrink-0 lg:block">
       <nav className="flex flex-col gap-0.5">
-        <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+        <p className="mb-2 px-2 text-[13px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
           Views
         </p>
         {items.map((item) => {
@@ -70,7 +70,7 @@ export function TasksSidebar({ value, onChange, tasks, currentUser }: Props) {
               type="button"
               onClick={() => onChange(item.key)}
               className={cn(
-                "flex items-center justify-between gap-2 rounded-md px-2.5 py-1.5 text-[13px] transition-colors duration-150",
+                "flex items-center justify-between gap-2 rounded-md px-2.5 py-1.5 text-[15px] transition-colors duration-150",
                 active
                   ? "bg-[var(--surface-hover)] text-[var(--text-primary)]"
                   : "text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]",
@@ -80,7 +80,7 @@ export function TasksSidebar({ value, onChange, tasks, currentUser }: Props) {
                 <span className="text-[var(--text-muted)]">{item.icon}</span>
                 {item.label}
               </span>
-              <span className="tabular text-[11px] text-[var(--text-muted)]">
+              <span className="tabular text-[13px] text-[var(--text-muted)]">
                 {count}
               </span>
             </button>

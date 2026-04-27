@@ -40,14 +40,14 @@ export function ClickUpStatusCard({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-[15px] font-semibold text-[var(--text-primary)]">
+            <h2 className="text-[17px] font-semibold text-[var(--text-primary)]">
               ClickUp
             </h2>
             <Badge tone="success" dot>
               Connected
             </Badge>
           </div>
-          <p className="mt-1 text-[13px] text-[var(--text-secondary)]">
+          <p className="mt-1 text-[15px] text-[var(--text-secondary)]">
             {status.clickupUserEmail}
           </p>
         </div>
@@ -72,21 +72,21 @@ export function ClickUpStatusCard({
         </div>
       </div>
 
-      <dl className="grid grid-cols-1 gap-3 text-[13px] sm:grid-cols-3">
+      <dl className="grid grid-cols-1 gap-3 text-[15px] sm:grid-cols-3">
         <div>
-          <dt className="text-[12px] text-[var(--text-muted)]">ClickUp user ID</dt>
+          <dt className="text-[14px] text-[var(--text-muted)]">ClickUp user ID</dt>
           <dd className="mt-0.5 font-medium text-[var(--text-primary)]">
             {status.clickupUserId}
           </dd>
         </div>
         <div>
-          <dt className="text-[12px] text-[var(--text-muted)]">Connected</dt>
+          <dt className="text-[14px] text-[var(--text-muted)]">Connected</dt>
           <dd className="mt-0.5 font-medium text-[var(--text-primary)]">
             {formatDateTime(status.connectedAt)}
           </dd>
         </div>
         <div>
-          <dt className="text-[12px] text-[var(--text-muted)]">Last sync</dt>
+          <dt className="text-[14px] text-[var(--text-muted)]">Last sync</dt>
           <dd className="mt-0.5 font-medium text-[var(--text-primary)]">
             {status.lastSyncAt ? formatDateTime(status.lastSyncAt) : "—"}
           </dd>
@@ -94,7 +94,7 @@ export function ClickUpStatusCard({
       </dl>
 
       {status.lastError && (
-        <div className="rounded-lg border border-[var(--danger)]/20 bg-[var(--danger-soft)] px-3 py-2 text-[12px] text-[var(--danger)]">
+        <div className="rounded-lg border border-[var(--danger)]/20 bg-[var(--danger-soft)] px-3 py-2 text-[14px] text-[var(--danger)]">
           Last sync error: {status.lastError}
         </div>
       )}

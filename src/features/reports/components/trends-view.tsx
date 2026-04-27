@@ -95,10 +95,10 @@ export function TrendsView({ from, to, userId }: Props) {
 
       <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-sm)]">
         <header className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-[13px] font-semibold text-[var(--text-primary)]">
+          <h2 className="text-[15px] font-semibold text-[var(--text-primary)]">
             Period Comparison
           </h2>
-          <div className="flex items-center gap-4 text-[11px]">
+          <div className="flex items-center gap-4 text-[13px]">
             <span className="flex items-center gap-1.5">
               <span className="inline-block h-2.5 w-2.5 rounded-full bg-[var(--accent)]" />
               Current ({rangeLabel(from, to)})
@@ -163,10 +163,10 @@ function DeltaCard({
         {label}
       </p>
       <div className="mt-1.5 flex items-baseline gap-3">
-        <span className="tabular text-[24px] font-semibold tracking-tight text-[var(--text-primary)]">
+        <span className="tabular text-[26px] font-semibold tracking-tight text-[var(--text-primary)]">
           {current}
         </span>
-        <span className={`tabular text-[13px] font-medium ${colorClass}`}>
+        <span className={`tabular text-[15px] font-medium ${colorClass}`}>
           {arrow} {change.pct === Infinity ? "new" : `${change.pct.toFixed(0)}%`}
         </span>
       </div>
@@ -193,7 +193,7 @@ function ComparisonRow({
 
   return (
     <div className="group grid grid-cols-[140px_1fr_80px] items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-[var(--surface-hover)]">
-      <span className="truncate text-[12px] text-[var(--text-secondary)]">
+      <span className="truncate text-[14px] text-[var(--text-secondary)]">
         {label}
       </span>
       <div className="flex flex-col gap-1">

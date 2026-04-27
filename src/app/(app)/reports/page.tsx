@@ -180,10 +180,10 @@ export default function ReportsPage() {
     <div className="mx-auto max-w-[1280px]">
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-[22px] font-semibold tracking-tight text-[var(--text-primary)]">
+          <h1 className="text-[24px] font-semibold tracking-tight text-[var(--text-primary)]">
             Reports &amp; Analytics
           </h1>
-          <p className="mt-0.5 text-[13px] text-[var(--text-secondary)]">
+          <p className="mt-0.5 text-[15px] text-[var(--text-secondary)]">
             Track time allocation and team performance.
           </p>
         </div>
@@ -365,14 +365,14 @@ function FilterSelect({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+      <span className="text-[13px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
         {label}
       </span>
       <label className="relative min-w-[220px]">
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="h-9 w-full appearance-none rounded-lg border border-[var(--border)] bg-[var(--surface)] pl-3 pr-9 text-[13px] font-medium text-[var(--text-primary)] shadow-[var(--shadow-sm)] transition-all duration-150 hover:border-[var(--border-strong)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-soft)]"
+          className="h-9 w-full appearance-none rounded-lg border border-[var(--border)] bg-[var(--surface)] pl-3 pr-9 text-[15px] font-medium text-[var(--text-primary)] shadow-[var(--shadow-sm)] transition-all duration-150 hover:border-[var(--border-strong)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-soft)]"
         >
           {options.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -403,11 +403,11 @@ function FilterSelect({
 function SectionHeader({ title, hint }: { title: string; hint?: string }) {
   return (
     <div className="mb-2 flex items-baseline justify-between">
-      <h2 className="text-[13px] font-semibold text-[var(--text-primary)]">
+      <h2 className="text-[15px] font-semibold text-[var(--text-primary)]">
         {title}
       </h2>
       {hint && (
-        <span className="text-[11px] text-[var(--text-muted)]">{hint}</span>
+        <span className="text-[13px] text-[var(--text-muted)]">{hint}</span>
       )}
     </div>
   );
@@ -550,7 +550,7 @@ function TopSummaryCards({
             <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
               {card.label}
             </p>
-            <p className="mt-0.5 tabular truncate text-[20px] font-semibold tracking-tight text-[var(--text-primary)]">
+            <p className="mt-0.5 tabular truncate text-[22px] font-semibold tracking-tight text-[var(--text-primary)]">
               {card.value}
             </p>
             <p className="mt-0.5 truncate text-[11.5px] text-[var(--text-secondary)]">
@@ -578,8 +578,8 @@ function TeamMemberSummary({
           return (
             <li key={bucket.key} className="px-4 py-3">
               <div className="mb-1 flex items-center justify-between gap-3">
-                <span className="text-[13px] font-medium text-[var(--text-primary)]">{bucket.label}</span>
-                <span className="tabular text-[12px] text-[var(--text-secondary)]">
+                <span className="text-[15px] font-medium text-[var(--text-primary)]">{bucket.label}</span>
+                <span className="tabular text-[14px] text-[var(--text-secondary)]">
                   {formatDurationSec(bucket.seconds)} · {pct.toFixed(1)}%
                 </span>
               </div>
@@ -609,7 +609,7 @@ function RecentEntriesTable({
   if (entries.length === 0) {
     return (
       <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-sm)]">
-        <p className="text-[13px] text-[var(--text-secondary)]">
+        <p className="text-[15px] text-[var(--text-secondary)]">
           No recent entries for the selected filters.
         </p>
       </div>
@@ -619,7 +619,7 @@ function RecentEntriesTable({
     <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-sm)]">
       <table className="w-full border-collapse text-left">
         <thead className="bg-[var(--surface-hover)]">
-          <tr className="text-[11px] uppercase tracking-[0.1em] text-[var(--text-muted)]">
+          <tr className="text-[13px] uppercase tracking-[0.1em] text-[var(--text-muted)]">
             <th className="px-4 py-2.5">Task</th>
             {isAdmin && <th className="px-4 py-2.5">Member</th>}
             <th className="px-4 py-2.5">Type</th>
@@ -627,7 +627,7 @@ function RecentEntriesTable({
             <th className="px-4 py-2.5 text-right">Duration</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-[var(--border)] text-[13px]">
+        <tbody className="divide-y divide-[var(--border)] text-[15px]">
           {entries.map((entry) => (
             <tr key={entry.id} className="hover:bg-[var(--surface-hover)]">
               <td className="px-4 py-2.5 text-[var(--text-primary)]">{entry.task.title}</td>

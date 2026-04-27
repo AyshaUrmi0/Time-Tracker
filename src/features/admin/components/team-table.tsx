@@ -24,7 +24,7 @@ export function TeamTable({
   return (
     <table className="w-full border-collapse">
       <thead>
-        <tr className="border-b border-[var(--border)] text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+        <tr className="border-b border-[var(--border)] text-[13px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
           <th className="px-4 py-2.5 text-left">Name</th>
           <th className="px-4 py-2.5 text-left">Email</th>
           <th className="px-4 py-2.5 text-left">Role</th>
@@ -39,7 +39,7 @@ export function TeamTable({
           return (
             <tr
               key={user.id}
-              className="text-[13px] transition-colors duration-150 hover:bg-[var(--surface-hover)]"
+              className="text-[15px] transition-colors duration-150 hover:bg-[var(--surface-hover)]"
               data-archived={user.isArchived}
             >
               <td className="px-4 py-3">

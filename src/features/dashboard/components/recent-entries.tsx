@@ -12,10 +12,10 @@ export function RecentEntries({ entries, showUser }: Props) {
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-sm)]">
       <header className="border-b border-[var(--border)] px-4 py-3">
-        <h2 className="text-[13px] font-semibold text-[var(--text-primary)]">
+        <h2 className="text-[15px] font-semibold text-[var(--text-primary)]">
           Recent entries
         </h2>
-        <p className="text-[11px] text-[var(--text-muted)]">
+        <p className="text-[13px] text-[var(--text-muted)]">
           {showUser ? "Team's latest time logs" : "Your latest time logs"}
         </p>
       </header>
@@ -42,20 +42,20 @@ export function RecentEntries({ entries, showUser }: Props) {
                 />
               )}
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[13px] font-medium text-[var(--text-primary)]">
+                <p className="truncate text-[15px] font-medium text-[var(--text-primary)]">
                   {entry.taskTitle}
                 </p>
                 {entry.note && (
-                  <p className="mt-0.5 truncate text-[12px] text-[var(--text-muted)]">
+                  <p className="mt-0.5 truncate text-[14px] text-[var(--text-muted)]">
                     {entry.note}
                   </p>
                 )}
-                <p className="mt-0.5 text-[11px] text-[var(--text-muted)]">
+                <p className="mt-0.5 text-[13px] text-[var(--text-muted)]">
                   {showUser && entry.user ? `${entry.user.name} · ` : ""}
                   {formatTime(entry.startTime)} – {formatTime(entry.endTime)}
                 </p>
               </div>
-              <span className="tabular shrink-0 text-[12px] font-semibold text-[var(--text-secondary)]">
+              <span className="tabular shrink-0 text-[14px] font-semibold text-[var(--text-secondary)]">
                 {formatDurationSec(entry.durationSeconds)}
               </span>
             </li>

@@ -59,7 +59,7 @@ function StatTile({
       <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
         {label}
       </p>
-      <p className="mt-1 tabular text-[22px] font-semibold tracking-tight text-[var(--text-primary)]">
+      <p className="mt-1 tabular text-[24px] font-semibold tracking-tight text-[var(--text-primary)]">
         {value}
       </p>
       {hint && (

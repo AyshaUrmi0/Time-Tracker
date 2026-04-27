@@ -13,7 +13,7 @@ type Props = {
 };
 
 const selectClass =
-  "h-9 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-[13px] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20";
+  "h-9 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-[15px] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20";
 
 export function TeamFilters({
   search,

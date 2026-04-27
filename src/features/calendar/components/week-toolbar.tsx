@@ -48,7 +48,7 @@ export function WeekToolbar({
           </svg>
         </button>
         <div
-          className="flex min-w-[180px] items-center justify-center gap-2 border-x border-[var(--border)] px-3 text-[13px] font-semibold text-[var(--text-primary)]"
+          className="flex min-w-[180px] items-center justify-center gap-2 border-x border-[var(--border)] px-3 text-[15px] font-semibold text-[var(--text-primary)]"
           aria-live="polite"
         >
           {isLoading && (
@@ -85,7 +85,7 @@ export function WeekToolbar({
         type="button"
         onClick={onToday}
         disabled={isCurrent}
-        className="h-9 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-[13px] font-medium text-[var(--text-secondary)] shadow-[var(--shadow-sm)] transition-colors duration-150 hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)] disabled:cursor-default disabled:opacity-50 disabled:hover:bg-[var(--surface)] disabled:hover:text-[var(--text-secondary)]"
+        className="h-9 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-[15px] font-medium text-[var(--text-secondary)] shadow-[var(--shadow-sm)] transition-colors duration-150 hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)] disabled:cursor-default disabled:opacity-50 disabled:hover:bg-[var(--surface)] disabled:hover:text-[var(--text-secondary)]"
       >
         Today
       </button>

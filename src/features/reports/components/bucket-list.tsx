@@ -15,10 +15,10 @@ export function BucketList({ buckets, groupBy, totalSeconds }: Props) {
   return (
     <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-sm)]">
       <header className="flex items-baseline justify-between border-b border-[var(--border)] px-5 py-3">
-        <h2 className="text-[13px] font-semibold text-[var(--text-primary)]">
+        <h2 className="text-[15px] font-semibold text-[var(--text-primary)]">
           {groupBy === "task" ? "By task" : "By user"}
         </h2>
-        <span className="text-[11px] text-[var(--text-muted)]">
+        <span className="text-[13px] text-[var(--text-muted)]">
           {buckets.length} {buckets.length === 1 ? "result" : "results"}
         </span>
       </header>
@@ -38,7 +38,7 @@ export function BucketList({ buckets, groupBy, totalSeconds }: Props) {
                   <StatusBadge status={b.task.status} />
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13px] font-medium text-[var(--text-primary)]">
+                  <p className="truncate text-[15px] font-medium text-[var(--text-primary)]">
                     {b.label}
                   </p>
                   <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[var(--surface-hover)]">
@@ -50,10 +50,10 @@ export function BucketList({ buckets, groupBy, totalSeconds }: Props) {
                 </div>
               </div>
               <div className="flex shrink-0 flex-col items-end leading-tight">
-                <span className="tabular text-[13px] font-semibold text-[var(--text-primary)]">
+                <span className="tabular text-[15px] font-semibold text-[var(--text-primary)]">
                   {formatDurationSec(b.seconds)}
                 </span>
-                <span className="tabular text-[11px] text-[var(--text-muted)]">
+                <span className="tabular text-[13px] text-[var(--text-muted)]">
                   {pct.toFixed(1)}% · {b.entries}{" "}
                   {b.entries === 1 ? "entry" : "entries"}
                 </span>

@@ -101,7 +101,7 @@ export function DateRangePicker({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-[13px] font-medium text-[var(--text-primary)] shadow-[var(--shadow-sm)] transition-colors duration-150 hover:bg-[var(--surface-hover)]"
+        className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-[15px] font-medium text-[var(--text-primary)] shadow-[var(--shadow-sm)] transition-colors duration-150 hover:bg-[var(--surface-hover)]"
       >
         <svg
           width="15"
@@ -145,7 +145,7 @@ export function DateRangePicker({
                   key={p.value}
                   type="button"
                   onClick={() => selectPreset(p.value)}
-                  className={`flex w-full rounded-md px-3 py-1.5 text-left text-[13px] transition-colors ${
+                  className={`flex w-full rounded-md px-3 py-1.5 text-left text-[15px] transition-colors ${
                     active
                       ? "bg-[var(--accent-soft)] font-medium text-[var(--accent-hover)]"
                       : "text-[var(--text-primary)] hover:bg-[var(--surface-hover)]"
@@ -165,9 +165,9 @@ export function DateRangePicker({
               onChange={(e) =>
                 onChange({ from: e.target.value, to, preset: "custom" })
               }
-              className="h-8 flex-1 text-[12px]"
+              className="h-8 flex-1 text-[14px]"
             />
-            <span className="text-[12px] text-[var(--text-muted)]">&ndash;</span>
+            <span className="text-[14px] text-[var(--text-muted)]">&ndash;</span>
             <Input
               type="date"
               value={to}
@@ -175,7 +175,7 @@ export function DateRangePicker({
               onChange={(e) =>
                 onChange({ from, to: e.target.value, preset: "custom" })
               }
-              className="h-8 flex-1 text-[12px]"
+              className="h-8 flex-1 text-[14px]"
             />
           </div>
         </div>
