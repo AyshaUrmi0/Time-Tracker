@@ -75,6 +75,15 @@ export async function GET(req: Request) {
     }
   }
 
+  let retryResult: Awaited<
+    ReturnType<typeof clickupTimeEntryService.retryFailedPushes>
+  > | null = null;
+  try {
+    retryResult = await clickupTimeEntryService.retryFailedPushes();
+  } catch (err) {
+    console.error("[cron-pull] retry pass failed:", err);
+  }
+
   return NextResponse.json({
     result: {
       connectionsProcessed: connections.length,
@@ -83,6 +92,7 @@ export async function GET(req: Request) {
       totalDeletedLocally,
       totalSkipped,
       perConnection,
+      retry: retryResult,
     },
   });
 }
