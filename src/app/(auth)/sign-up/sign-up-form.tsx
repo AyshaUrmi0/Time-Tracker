@@ -82,10 +82,10 @@ export function SignUpForm() {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-[28px] font-semibold tracking-tight text-[var(--text-primary)]">
+        <h1 className="text-[30px] font-semibold tracking-tight text-[var(--text-primary)]">
           Create account
         </h1>
-        <p className="mt-2 text-[14px] text-[var(--text-secondary)]">
+        <p className="mt-2 text-[16px] text-[var(--text-secondary)]">
           Start tracking time in under a minute.
         </p>
       </div>
@@ -126,7 +126,7 @@ export function SignUpForm() {
         <input type="hidden" {...register("timezone")} />
 
         {formError && (
-          <div className="rounded-lg border border-[var(--danger)]/30 bg-[var(--danger-soft)] px-3 py-2 text-[13px] text-[var(--danger)]">
+          <div className="rounded-lg border border-[var(--danger)]/30 bg-[var(--danger-soft)] px-3 py-2 text-[15px] text-[var(--danger)]">
             {formError}
           </div>
         )}
@@ -136,7 +136,7 @@ export function SignUpForm() {
         </Button>
       </form>
 
-      <p className="text-center text-[13px] text-[var(--text-secondary)]">
+      <p className="text-center text-[15px] text-[var(--text-secondary)]">
         Already have an account?{" "}
         <Link
           href={`/sign-in${returnTo && returnTo !== "/dashboard" ? `?returnTo=${encodeURIComponent(returnTo)}` : ""}`}

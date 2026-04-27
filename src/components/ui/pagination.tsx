@@ -20,7 +20,7 @@ export function Pagination({
 
   return (
     <div className="flex items-center justify-between border-t border-[var(--border)] px-4 py-3">
-      <p className="text-[12px] text-[var(--text-muted)]">
+      <p className="text-[14px] text-[var(--text-muted)]">
         Showing{" "}
         <span className="text-[var(--text-secondary)] tabular">{from}</span> to{" "}
         <span className="text-[var(--text-secondary)] tabular">{to}</span> of{" "}

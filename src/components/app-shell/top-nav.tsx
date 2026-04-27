@@ -34,7 +34,7 @@ export function TopNav() {
         <div className="flex items-center gap-6">
           <Link href="/dashboard" className="flex items-center gap-2">
             <BrandMark size={26} />
-            <span className="text-[14px] font-semibold tracking-tight text-[var(--text-primary)]">
+            <span className="text-[16px] font-semibold tracking-tight text-[var(--text-primary)]">
               Time Tracker
             </span>
           </Link>
@@ -49,7 +49,7 @@ export function TopNav() {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors duration-150",
+                    "rounded-md px-3 py-1.5 text-[15px] font-medium transition-colors duration-150",
                     active
                       ? "bg-[var(--surface-hover)] text-[var(--text-primary)]"
                       : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]",
@@ -89,7 +89,7 @@ function AvatarMenu({ name, id }: { name: string; id?: string }) {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 rounded-lg px-1 py-1 text-[13px] font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]"
+        className="flex items-center gap-2 rounded-lg px-1 py-1 text-[15px] font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]"
         aria-haspopup="menu"
         aria-expanded={open}
       >
@@ -101,12 +101,12 @@ function AvatarMenu({ name, id }: { name: string; id?: string }) {
           className="absolute right-0 mt-2 w-56 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-md)]"
         >
           <div className="border-b border-[var(--border)] px-3 py-2.5">
-            <p className="text-[13px] font-medium text-[var(--text-primary)]">{name}</p>
+            <p className="text-[15px] font-medium text-[var(--text-primary)]">{name}</p>
           </div>
           <button
             type="button"
             onClick={() => signOut({ callbackUrl: "/sign-in" })}
-            className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-[var(--text-secondary)] transition-colors duration-150 hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
+            className="flex w-full items-center gap-2 px-3 py-2 text-left text-[15px] text-[var(--text-secondary)] transition-colors duration-150 hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
             role="menuitem"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

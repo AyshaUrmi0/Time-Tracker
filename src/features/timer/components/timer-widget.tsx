@@ -40,7 +40,7 @@ export function TimerWidget() {
           type="button"
           onClick={() => setPickerOpen(true)}
           disabled={startMutation.isPending}
-          className="inline-flex h-8 items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2.5 text-[12px] font-medium text-[var(--text-secondary)] transition-colors duration-150 hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)] disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex h-8 items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2.5 text-[14px] font-medium text-[var(--text-secondary)] transition-colors duration-150 hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)] disabled:cursor-not-allowed disabled:opacity-50"
         >
           <svg
             width="12"
@@ -92,13 +92,13 @@ function RunningPill({
         className="h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--danger)]"
       />
       <span
-        className="max-w-[140px] truncate text-[12px] font-medium text-[var(--text-secondary)]"
+        className="max-w-[140px] truncate text-[14px] font-medium text-[var(--text-secondary)]"
         title={taskTitle}
       >
         {taskTitle}
       </span>
       <span
-        className="tabular text-[12px] font-semibold text-[var(--text-primary)]"
+        className="tabular text-[14px] font-semibold text-[var(--text-primary)]"
         aria-label="Elapsed time"
       >
         {formatHMS(seconds)}

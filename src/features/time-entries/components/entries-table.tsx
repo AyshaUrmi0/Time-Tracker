@@ -96,10 +96,10 @@ export function EntriesTable({
           className={idx > 0 ? "border-t border-[var(--border)]" : undefined}
         >
           <header className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--surface-hover)] px-4 py-2">
-            <h2 className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+            <h2 className="text-[14px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
               {group.label}
             </h2>
-            <span className="tabular text-[12px] font-semibold text-[var(--text-secondary)]">
+            <span className="tabular text-[14px] font-semibold text-[var(--text-secondary)]">
               {formatDurationSec(group.total)}
             </span>
           </header>
@@ -136,7 +136,7 @@ function EntryRow({
 }) {
   const isRunning = entry.endTime === null;
   return (
-    <li className="flex items-center gap-4 px-4 py-3 text-[13px] transition-colors duration-150 hover:bg-[var(--surface-hover)]">
+    <li className="flex items-center gap-4 px-4 py-3 text-[15px] transition-colors duration-150 hover:bg-[var(--surface-hover)]">
       <div className="min-w-0 flex-1">
         <button
           type="button"
@@ -147,13 +147,13 @@ function EntryRow({
           <span className="truncate">{entry.task.title}</span>
         </button>
         {entry.note && (
-          <p className="mt-0.5 truncate text-[12px] text-[var(--text-muted)]">
+          <p className="mt-0.5 truncate text-[14px] text-[var(--text-muted)]">
             {entry.note}
           </p>
         )}
         <div className="mt-1 inline-flex flex-wrap items-center gap-2">
           {showUser && (
-            <span className="inline-flex items-center gap-1.5 text-[11px] text-[var(--text-muted)]">
+            <span className="inline-flex items-center gap-1.5 text-[13px] text-[var(--text-muted)]">
               <Avatar name={entry.user.name} id={entry.user.id} size={16} />
               {entry.user.name}
             </span>
@@ -162,11 +162,11 @@ function EntryRow({
         </div>
       </div>
 
-      <div className="hidden text-[12px] text-[var(--text-secondary)] sm:block">
+      <div className="hidden text-[14px] text-[var(--text-secondary)] sm:block">
         {formatTimeRange(entry.startTime, entry.endTime)}
       </div>
 
-      <div className="tabular w-14 text-right text-[13px] font-semibold text-[var(--text-primary)]">
+      <div className="tabular w-14 text-right text-[15px] font-semibold text-[var(--text-primary)]">
         {isRunning ? (
           <span className="inline-flex items-center gap-1 text-[var(--danger)]">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--danger)]" />
@@ -191,7 +191,7 @@ function SyncStatusBadge({ entry }: { entry: TimeEntry }) {
   if (entry.syncStatus === "SYNCED") {
     return (
       <span
-        className="inline-flex items-center gap-1 text-[11px] text-[var(--success)]"
+        className="inline-flex items-center gap-1 text-[13px] text-[var(--success)]"
         title="Synced to ClickUp"
       >
         <span className="h-1.5 w-1.5 rounded-full bg-[var(--success)]" />
@@ -202,7 +202,7 @@ function SyncStatusBadge({ entry }: { entry: TimeEntry }) {
   if (entry.syncStatus === "FAILED") {
     return (
       <span
-        className="inline-flex items-center gap-1 text-[11px] text-[var(--danger)]"
+        className="inline-flex items-center gap-1 text-[13px] text-[var(--danger)]"
         title={entry.syncLastError ?? "Sync to ClickUp failed"}
       >
         <span className="h-1.5 w-1.5 rounded-full bg-[var(--danger)]" />
@@ -213,7 +213,7 @@ function SyncStatusBadge({ entry }: { entry: TimeEntry }) {
   if (entry.endTime) {
     return (
       <span
-        className="inline-flex items-center gap-1 text-[11px] text-[var(--text-muted)]"
+        className="inline-flex items-center gap-1 text-[13px] text-[var(--text-muted)]"
         title="Not yet pushed to ClickUp"
       >
         <span className="h-1.5 w-1.5 rounded-full bg-[var(--text-muted)]" />
@@ -317,7 +317,7 @@ function RowActionsMenu({
                   setOpen(false);
                   onEdit();
                 }}
-                className="block w-full px-3 py-2 text-left text-[13px] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
+                className="block w-full px-3 py-2 text-left text-[15px] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
               >
                 Edit
               </button>
@@ -328,7 +328,7 @@ function RowActionsMenu({
                   setOpen(false);
                   onDelete();
                 }}
-                className="block w-full px-3 py-2 text-left text-[13px] text-[var(--danger)] hover:bg-[var(--danger-soft)]"
+                className="block w-full px-3 py-2 text-left text-[15px] text-[var(--danger)] hover:bg-[var(--danger-soft)]"
               >
                 Delete
               </button>

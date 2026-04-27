@@ -45,10 +45,10 @@ export function ClickUpAdminActions() {
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-sm)]">
       <div>
-        <h2 className="text-[15px] font-semibold text-[var(--text-primary)]">
+        <h2 className="text-[17px] font-semibold text-[var(--text-primary)]">
           Admin actions
         </h2>
-        <p className="mt-1 text-[13px] text-[var(--text-secondary)]">
+        <p className="mt-1 text-[15px] text-[var(--text-secondary)]">
           Manage workspace-wide ClickUp linkage. Each action uses your ClickUp
           connection and affects all users.
         </p>
@@ -83,7 +83,7 @@ export function ClickUpAdminActions() {
               className="h-9 w-20"
               aria-label="Lookback days"
             />
-            <span className="text-[12px] text-[var(--text-muted)]">days</span>
+            <span className="text-[14px] text-[var(--text-muted)]">days</span>
             <Button
               size="sm"
               onClick={() => pullTimeEntries.mutate(days)}
@@ -153,7 +153,7 @@ function WebhookHealthSummary({
 }) {
   if (webhooks.length === 0) {
     return (
-      <span className="text-[11px] text-[var(--text-muted)]">
+      <span className="text-[13px] text-[var(--text-muted)]">
         No webhooks registered.
       </span>
     );
@@ -164,7 +164,7 @@ function WebhookHealthSummary({
   );
   if (unhealthy.length === 0) {
     return (
-      <span className="inline-flex items-center gap-1 text-[11px] text-[var(--success)]">
+      <span className="inline-flex items-center gap-1 text-[13px] text-[var(--success)]">
         <span className="h-1.5 w-1.5 rounded-full bg-[var(--success)]" />
         {webhooks.length} healthy
       </span>
@@ -183,7 +183,7 @@ function WebhookHealthSummary({
   return (
     <div className="flex items-center gap-2">
       <span
-        className="inline-flex items-center gap-1 text-[11px] text-[var(--danger)]"
+        className="inline-flex items-center gap-1 text-[13px] text-[var(--danger)]"
         title={tooltipLines}
       >
         <span className="h-1.5 w-1.5 rounded-full bg-[var(--danger)]" />
@@ -193,7 +193,7 @@ function WebhookHealthSummary({
         type="button"
         onClick={onReset}
         disabled={resetDisabled || resetting}
-        className="text-[11px] font-medium text-[var(--accent)] hover:text-[var(--accent-hover)] disabled:opacity-50"
+        className="text-[13px] font-medium text-[var(--accent)] hover:text-[var(--accent-hover)] disabled:opacity-50"
       >
         {resetting ? "Resetting…" : "Reset"}
       </button>
@@ -213,8 +213,8 @@ function ActionRow({
   return (
     <div className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-[var(--border)] px-4 py-3">
       <div className="min-w-0 flex-1">
-        <p className="text-[13px] font-medium text-[var(--text-primary)]">{title}</p>
-        <p className="mt-0.5 text-[12px] text-[var(--text-secondary)]">{description}</p>
+        <p className="text-[15px] font-medium text-[var(--text-primary)]">{title}</p>
+        <p className="mt-0.5 text-[14px] text-[var(--text-secondary)]">{description}</p>
       </div>
       <div className="shrink-0">{children}</div>
     </div>

@@ -22,7 +22,7 @@ export function TasksTable({ tasks, isAdmin, onEdit, onArchive }: Props) {
     <div>
       <table className="w-full border-collapse">
         <thead>
-          <tr className="border-b border-[var(--border)] text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+          <tr className="border-b border-[var(--border)] text-[13px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
             <th className="px-4 py-2.5 text-left">Title</th>
             <th className="px-4 py-2.5 text-left">Status</th>
             <th className="px-4 py-2.5 text-left">Assignee</th>
@@ -60,7 +60,7 @@ function TaskRow({
 }) {
   return (
     <tr
-      className="text-[13px] transition-colors duration-150 hover:bg-[var(--surface-hover)]"
+      className="text-[15px] transition-colors duration-150 hover:bg-[var(--surface-hover)]"
       data-archived={task.isArchived}
     >
       <td className="px-4 py-3">
@@ -117,7 +117,7 @@ const VIEWPORT_PADDING = 8;
 function ClickUpLink({ url }: { url: string | null }) {
   const inner = (
     <span
-      className="ml-2 inline-flex items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--surface-hover)] px-1.5 py-0.5 text-[11px] font-medium text-[var(--text-secondary)]"
+      className="ml-2 inline-flex items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--surface-hover)] px-1.5 py-0.5 text-[13px] font-medium text-[var(--text-secondary)]"
       title="Synced with ClickUp"
     >
       ClickUp
@@ -241,7 +241,7 @@ function RowActionsMenu({
                   setOpen(false);
                   onEdit();
                 }}
-                className="block w-full px-3 py-2 text-left text-[13px] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
+                className="block w-full px-3 py-2 text-left text-[15px] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
               >
                 Edit
               </button>
@@ -252,7 +252,7 @@ function RowActionsMenu({
                   setOpen(false);
                   onArchive();
                 }}
-                className="block w-full px-3 py-2 text-left text-[13px] text-[var(--danger)] hover:bg-[var(--danger-soft)]"
+                className="block w-full px-3 py-2 text-left text-[15px] text-[var(--danger)] hover:bg-[var(--danger-soft)]"
               >
                 Archive
               </button>
