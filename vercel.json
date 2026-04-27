@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/clickup-time-entries-pull?days=1",
+      "schedule": "0 2 * * *"
+    }
+  ]
+}
