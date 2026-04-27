@@ -293,6 +293,7 @@ export type UpdateClickUpTaskInput = {
   description?: string | null;
   status?: string;
   assignees?: { add?: number[]; rem?: number[] };
+  archived?: boolean;
 };
 
 export async function updateClickUpTask(
@@ -305,6 +306,7 @@ export async function updateClickUpTask(
   if (input.description !== undefined) body.description = input.description ?? "";
   if (input.status !== undefined) body.status = input.status;
   if (input.assignees) body.assignees = input.assignees;
+  if (input.archived !== undefined) body.archived = input.archived;
   await clickupFetch<unknown>(`/task/${taskId}`, token, {
     method: "PUT",
     body,
