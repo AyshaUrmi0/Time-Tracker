@@ -14,6 +14,7 @@ export function useCurrentTimer() {
     queryKey: TIMER_CURRENT_KEY,
     queryFn: () => timerService.getCurrent(),
     refetchOnWindowFocus: true,
+    refetchInterval: 20_000,
     staleTime: 0,
   });
 }

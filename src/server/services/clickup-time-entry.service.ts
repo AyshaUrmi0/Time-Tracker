@@ -8,6 +8,7 @@ import {
   fetchClickUpTaskTimeEntries,
   fetchClickUpTeams,
   fetchClickUpTimeEntries,
+  getCurrentClickUpTimer,
   startClickUpTimer,
   stopClickUpTimer,
   updateClickUpTimeEntry,
@@ -94,6 +95,98 @@ export const clickupTimeEntryService = {
       }
     } catch (err) {
       console.error("[clickup-push-start] unexpected error:", err);
+    }
+  },
+
+  async adoptRunningClickUpTimer(userId: string): Promise<{ id: string } | null> {
+    try {
+      const conn = await prisma.clickUpConnection.findUnique({
+        where: { userId },
+        select: {
+          accessTokenEncrypted: true,
+          encryptionIv: true,
+          isActive: true,
+        },
+      });
+      if (!conn || !conn.isActive) return null;
+
+      const token = decrypt(conn.accessTokenEncrypted, conn.encryptionIv);
+      let teams;
+      try {
+        teams = await fetchClickUpTeams(token);
+      } catch (err) {
+        await handleClickUpInvalidToken(err, userId);
+        return null;
+      }
+
+      for (const team of teams) {
+        let ccTimer;
+        try {
+          ccTimer = await getCurrentClickUpTimer(token, team.id);
+        } catch (err) {
+          await handleClickUpInvalidToken(err, userId);
+          continue;
+        }
+        if (!ccTimer || !ccTimer.taskId) continue;
+
+        const existing = await prisma.timeEntry.findFirst({
+          where: { clickupTimeEntryId: ccTimer.id },
+          select: { id: true, endTime: true, userId: true },
+        });
+        if (existing) {
+          if (existing.endTime === null && existing.userId === userId) {
+            return { id: existing.id };
+          }
+          continue;
+        }
+
+        const localTask = await prisma.task.findFirst({
+          where: { clickupTaskId: ccTimer.taskId },
+          select: { id: true, isArchived: true },
+        });
+        if (!localTask || localTask.isArchived) continue;
+
+        try {
+          const created = await prisma.timeEntry.create({
+            data: {
+              userId,
+              taskId: localTask.id,
+              startTime: new Date(ccTimer.startMs),
+              note: ccTimer.description,
+              isManual: false,
+              source: "CLICKUP",
+              clickupTimeEntryId: ccTimer.id,
+              clickupTeamId: ccTimer.teamId,
+              syncStatus: "SYNCED",
+              syncLastAttemptAt: new Date(),
+            },
+            select: { id: true },
+          });
+          return created;
+        } catch (err) {
+          if (
+            err instanceof Prisma.PrismaClientKnownRequestError &&
+            err.code === "P2002"
+          ) {
+            const after = await prisma.timeEntry.findFirst({
+              where: {
+                clickupTimeEntryId: ccTimer.id,
+                userId,
+                endTime: null,
+              },
+              select: { id: true },
+            });
+            if (after) return after;
+            continue;
+          }
+          console.error(`[clickup-adopt] create failed for user ${userId}:`, err);
+          continue;
+        }
+      }
+      return null;
+    } catch (err) {
+      console.error("[clickup-adopt] unexpected error:", err);
+      return null;
     }
   },
 
