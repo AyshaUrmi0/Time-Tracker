@@ -70,6 +70,45 @@ function parseEpochMs(value: string | null | undefined): Date | null {
   return new Date(ms);
 }
 
+type AssigneeLike = {
+  id: number;
+  username?: string;
+  email?: string;
+};
+
+async function resolveAssignedToId(
+  assignees: AssigneeLike[] | undefined,
+  userIdByClickup: Map<number, string>,
+): Promise<string | null> {
+  if (!assignees || assignees.length === 0) return null;
+
+  const matched = assignees.find((a) => userIdByClickup.has(a.id));
+  if (matched) return userIdByClickup.get(matched.id) ?? null;
+
+  for (const a of assignees) {
+    if (!a.email) continue;
+    const localUser = await prisma.user.findFirst({
+      where: { email: { equals: a.email, mode: "insensitive" } },
+      select: { id: true, clickupUserId: true },
+    });
+    if (!localUser) continue;
+    if (localUser.clickupUserId !== a.id) {
+      try {
+        await prisma.user.update({
+          where: { id: localUser.id },
+          data: { clickupUserId: a.id, clickupEmail: a.email },
+        });
+      } catch {
+        return localUser.id;
+      }
+    }
+    userIdByClickup.set(a.id, localUser.id);
+    return localUser.id;
+  }
+
+  return null;
+}
+
 async function upsertTask(
   ctx: SyncContext,
   task: ClickUpTask,
@@ -77,12 +116,10 @@ async function upsertTask(
   loc: ListLocation,
 ): Promise<"imported" | "updated"> {
   const statusMap = mapStatus(task.status);
-  const matchedAssignee = task.assignees?.find((a) =>
-    ctx.userIdByClickup.has(a.id),
+  const assignedToId = await resolveAssignedToId(
+    task.assignees,
+    ctx.userIdByClickup,
   );
-  const assignedToId = matchedAssignee
-    ? (ctx.userIdByClickup.get(matchedAssignee.id) ?? null)
-    : null;
 
   const data = {
     title: task.name?.trim() || "(untitled)",
@@ -188,12 +225,10 @@ export async function upsertSingleTaskFromClickUp(
   for (const u of localUsers) {
     if (u.clickupUserId !== null) userIdByClickup.set(u.clickupUserId, u.id);
   }
-  const matchedAssignee = detail.assignees?.find((a) =>
-    userIdByClickup.has(a.id),
+  const assignedToId = await resolveAssignedToId(
+    detail.assignees,
+    userIdByClickup,
   );
-  const assignedToId = matchedAssignee
-    ? (userIdByClickup.get(matchedAssignee.id) ?? null)
-    : null;
 
   const statusMap = mapStatus(detail.status);
 
