@@ -22,7 +22,18 @@ const entrySelect = {
   createdAt: true,
   updatedAt: true,
   user: { select: { id: true, name: true, email: true } },
-  task: { select: { id: true, title: true, status: true, isArchived: true } },
+  task: {
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      isArchived: true,
+      clickupTaskId: true,
+    },
+  },
+  syncStatus: true,
+  clickupTimeEntryId: true,
+  syncLastError: true,
 } as const;
 
 function computeDurationSeconds(startTime: Date, endTime: Date): number {

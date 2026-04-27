@@ -46,7 +46,11 @@ function toTimeEntryForDialog(
       title: entry.taskTitle,
       status: entry.taskStatus,
       isArchived: false,
+      clickupTaskId: null,
     },
+    syncStatus: "NOT_SYNCED",
+    clickupTimeEntryId: null,
+    syncLastError: null,
   };
 }
 
