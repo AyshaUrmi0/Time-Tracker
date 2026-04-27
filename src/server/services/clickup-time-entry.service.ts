@@ -5,12 +5,16 @@ import { decrypt } from "@/lib/encryption";
 import {
   createClickUpTimeEntry,
   deleteClickUpTimeEntry,
+  fetchClickUpTaskTimeEntries,
   fetchClickUpTeams,
   fetchClickUpTimeEntries,
   updateClickUpTimeEntry,
 } from "@/lib/clickup/client";
 import { handleClickUpInvalidToken } from "@/server/services/clickup-error-handling";
-import type { ClickUpTimeEntriesPullResult } from "@/features/clickup/types";
+import type {
+  ClickUpTimeEntriesPullResult,
+  ClickUpTaskTimeEntriesReconcileResult,
+} from "@/features/clickup/types";
 
 const DEFAULT_PULL_DAYS = 7;
 const MAX_PULL_DAYS = 90;
@@ -295,6 +299,210 @@ export const clickupTimeEntryService = {
       await handleClickUpInvalidToken(err, meta.ownerUserId);
       return { pushed: false, reason: msg };
     }
+  },
+
+  async reconcileTaskTimeEntries(
+    clickupTaskId: string,
+    connectionUserId: string,
+  ): Promise<ClickUpTaskTimeEntriesReconcileResult> {
+    const empty = {
+      imported: 0,
+      updated: 0,
+      deletedLocally: 0,
+      skippedNoUser: 0,
+      errors: [] as string[],
+    };
+
+    const localTask = await prisma.task.findFirst({
+      where: { clickupTaskId },
+      select: { id: true },
+    });
+    if (!localTask) {
+      return { status: "skipped", reason: "task_not_found_local", ...empty };
+    }
+
+    const conn = await prisma.clickUpConnection.findUnique({
+      where: { userId: connectionUserId },
+      select: {
+        accessTokenEncrypted: true,
+        encryptionIv: true,
+        isActive: true,
+      },
+    });
+    if (!conn || !conn.isActive) {
+      return { status: "skipped", reason: "no_connection", ...empty };
+    }
+
+    const token = decrypt(conn.accessTokenEncrypted, conn.encryptionIv);
+
+    let remoteEntries;
+    try {
+      remoteEntries = await fetchClickUpTaskTimeEntries(token, clickupTaskId);
+    } catch (err) {
+      await handleClickUpInvalidToken(err, connectionUserId);
+      return {
+        status: "skipped",
+        reason: `fetch_failed: ${(err as Error).message?.slice(0, 200) ?? "unknown"}`,
+        ...empty,
+      };
+    }
+
+    const remoteIds = new Set(remoteEntries.map((e) => e.id));
+
+    const localEntries = await prisma.timeEntry.findMany({
+      where: {
+        taskId: localTask.id,
+        clickupTimeEntryId: { not: null },
+      },
+      select: {
+        id: true,
+        clickupTimeEntryId: true,
+        startTime: true,
+        durationSeconds: true,
+        note: true,
+      },
+    });
+
+    const localByClickupId = new Map<string, (typeof localEntries)[number]>();
+    for (const l of localEntries) {
+      if (l.clickupTimeEntryId) localByClickupId.set(l.clickupTimeEntryId, l);
+    }
+
+    let imported = 0;
+    let updated = 0;
+    let deletedLocally = 0;
+    let skippedNoUser = 0;
+    const errors: string[] = [];
+
+    for (const local of localEntries) {
+      if (local.clickupTimeEntryId && !remoteIds.has(local.clickupTimeEntryId)) {
+        try {
+          await prisma.timeEntry.delete({ where: { id: local.id } });
+          deletedLocally++;
+        } catch (err) {
+          errors.push(
+            `delete local ${local.id}: ${(err as Error).message?.slice(0, 200) ?? "delete failed"}`,
+          );
+        }
+      }
+    }
+
+    if (remoteEntries.length === 0) {
+      return {
+        status: "ok",
+        imported,
+        updated,
+        deletedLocally,
+        skippedNoUser,
+        errors,
+      };
+    }
+
+    const remoteUserIds = Array.from(
+      new Set(remoteEntries.map((e) => e.userId)),
+    );
+    const localUsers = await prisma.user.findMany({
+      where: { clickupUserId: { in: remoteUserIds } },
+      select: { id: true, clickupUserId: true },
+    });
+    const userByClickup = new Map<number, string>();
+    for (const u of localUsers) {
+      if (u.clickupUserId !== null) userByClickup.set(u.clickupUserId, u.id);
+    }
+
+    for (const e of remoteEntries) {
+      if (e.duration <= 0) continue;
+
+      const existingLocal = localByClickupId.get(e.id);
+      if (existingLocal) {
+        const remoteStartMs = e.start;
+        const remoteDurationSec = Math.round(e.duration / 1000);
+        const localStartMs = existingLocal.startTime.getTime();
+        const localDurationSec = existingLocal.durationSeconds ?? 0;
+        const localNote = existingLocal.note ?? null;
+        const remoteNote = e.description ?? null;
+
+        const startChanged = remoteStartMs !== localStartMs;
+        const durationChanged = remoteDurationSec !== localDurationSec;
+        const noteChanged = (localNote ?? "") !== (remoteNote ?? "");
+
+        if (startChanged || durationChanged || noteChanged) {
+          try {
+            await prisma.timeEntry.update({
+              where: { id: existingLocal.id },
+              data: {
+                ...(startChanged ? { startTime: new Date(remoteStartMs) } : {}),
+                ...(durationChanged || startChanged
+                  ? {
+                      endTime: new Date(remoteStartMs + e.duration),
+                      durationSeconds: remoteDurationSec,
+                    }
+                  : {}),
+                ...(noteChanged ? { note: remoteNote } : {}),
+                syncStatus: "SYNCED",
+                syncLastAttemptAt: new Date(),
+                syncLastError: null,
+              },
+            });
+            updated++;
+          } catch (err) {
+            errors.push(
+              `update entry ${e.id}: ${(err as Error).message?.slice(0, 200) ?? "update failed"}`,
+            );
+          }
+        }
+        continue;
+      }
+
+      if (!userByClickup.has(e.userId)) {
+        skippedNoUser++;
+        continue;
+      }
+
+      const localUserId = userByClickup.get(e.userId)!;
+      const startTime = new Date(e.start);
+      const endTime = new Date(e.start + e.duration);
+      const durationSeconds = Math.round(e.duration / 1000);
+
+      try {
+        await prisma.timeEntry.create({
+          data: {
+            userId: localUserId,
+            taskId: localTask.id,
+            startTime,
+            endTime,
+            durationSeconds,
+            note: e.description,
+            isManual: false,
+            source: "CLICKUP",
+            clickupTimeEntryId: e.id,
+            clickupTeamId: e.teamId,
+            syncStatus: "SYNCED",
+            syncLastAttemptAt: new Date(),
+          },
+        });
+        imported++;
+      } catch (err) {
+        if (
+          err instanceof Prisma.PrismaClientKnownRequestError &&
+          err.code === "P2002"
+        ) {
+          continue;
+        }
+        errors.push(
+          `entry ${e.id}: ${(err as Error).message?.slice(0, 200) ?? "create failed"}`,
+        );
+      }
+    }
+
+    return {
+      status: "ok",
+      imported,
+      updated,
+      deletedLocally,
+      skippedNoUser,
+      errors,
+    };
   },
 
   async pullFromClickUp(

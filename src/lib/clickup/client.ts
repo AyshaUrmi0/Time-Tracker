@@ -417,16 +417,37 @@ export async function fetchClickUpTimeEntries(
     token,
     { query: { start_date: opts.startMs, end_date: opts.endMs } },
   );
+  return parseClickUpTimeEntries(json.data, teamId);
+}
+
+export async function fetchClickUpTaskTimeEntries(
+  token: string,
+  taskId: string,
+): Promise<ClickUpTimeEntry[]> {
+  const json = await clickupFetch<ClickUpTimeEntriesResponse>(
+    `/task/${taskId}/time`,
+    token,
+  );
+  return parseClickUpTimeEntries(json.data, null, taskId);
+}
+
+function parseClickUpTimeEntries(
+  data: ClickUpTimeEntriesResponse["data"],
+  fallbackTeamId: string | null,
+  fallbackTaskId: string | null = null,
+): ClickUpTimeEntry[] {
   const entries: ClickUpTimeEntry[] = [];
-  for (const e of json.data ?? []) {
+  for (const e of data ?? []) {
     const start = parseMs(e.start);
     const duration = parseMs(e.duration);
     if (start === null || duration === null) continue;
     if (typeof e.user?.id !== "number") continue;
+    const teamId = e.wid ?? fallbackTeamId;
+    if (!teamId) continue;
     entries.push({
       id: e.id,
-      taskId: e.task?.id ?? null,
-      teamId: e.wid ?? teamId,
+      taskId: e.task?.id ?? fallbackTaskId,
+      teamId,
       userId: e.user.id,
       start,
       end: parseMs(e.end),

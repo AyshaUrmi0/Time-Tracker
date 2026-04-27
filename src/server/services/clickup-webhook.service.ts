@@ -10,6 +10,7 @@ import {
   fetchClickUpTeams,
 } from "@/lib/clickup/client";
 import { upsertSingleTaskFromClickUp } from "@/server/services/clickup-sync.service";
+import { clickupTimeEntryService } from "@/server/services/clickup-time-entry.service";
 import { handleClickUpInvalidToken } from "@/server/services/clickup-error-handling";
 import type {
   ClickUpWebhookHealthResult,
@@ -28,6 +29,7 @@ const DEFAULT_EVENTS = [
   "taskMoved",
   "taskPriorityUpdated",
   "taskTagUpdated",
+  "taskTimeTrackedUpdated",
 ];
 
 const MAX_WEBHOOK_FAILURES = 50;
@@ -76,6 +78,20 @@ async function handleEvent(
       data: { isArchived: true },
     });
     return { action: "archived", detail: `count=${updated.count}` };
+  }
+
+  if (eventType === "taskTimeTrackedUpdated") {
+    const result = await clickupTimeEntryService.reconcileTaskTimeEntries(
+      taskId,
+      connectionUserId,
+    );
+    if (result.status === "skipped") {
+      return { action: "skipped", detail: result.reason };
+    }
+    return {
+      action: "time_reconciled",
+      detail: `imported=${result.imported} updated=${result.updated} deleted=${result.deletedLocally}${result.errors.length > 0 ? ` errors=${result.errors.length}` : ""}`,
+    };
   }
 
   const token = decrypt(encryptedToken, iv);
