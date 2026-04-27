@@ -8,6 +8,7 @@ import {
   useClickUpWebhookHealth,
   usePullClickUpTimeEntries,
   useRegisterClickUpWebhooks,
+  useResetClickUpWebhookHealth,
   useSyncClickUpMembers,
   useUnregisterClickUpWebhooks,
 } from "../clickup.queries";
@@ -19,13 +20,15 @@ export function ClickUpAdminActions() {
   const registerWebhooks = useRegisterClickUpWebhooks();
   const unregisterWebhooks = useUnregisterClickUpWebhooks();
   const webhookHealth = useClickUpWebhookHealth(true);
+  const resetWebhookHealth = useResetClickUpWebhookHealth();
   const modal = useModal();
 
   const anyPending =
     syncMembers.isPending ||
     pullTimeEntries.isPending ||
     registerWebhooks.isPending ||
-    unregisterWebhooks.isPending;
+    unregisterWebhooks.isPending ||
+    resetWebhookHealth.isPending;
 
   async function handleUnregister() {
     const ok = await modal.confirm({
@@ -118,6 +121,9 @@ export function ClickUpAdminActions() {
             </div>
             <WebhookHealthSummary
               webhooks={webhookHealth.data?.webhooks ?? []}
+              onReset={() => resetWebhookHealth.mutate()}
+              resetting={resetWebhookHealth.isPending}
+              resetDisabled={anyPending && !resetWebhookHealth.isPending}
             />
           </div>
         </ActionRow>
@@ -126,8 +132,13 @@ export function ClickUpAdminActions() {
   );
 }
 
+const AUTO_DISABLE_THRESHOLD = 50;
+
 function WebhookHealthSummary({
   webhooks,
+  onReset,
+  resetting,
+  resetDisabled,
 }: {
   webhooks: Array<{
     webhookId: string;
@@ -136,6 +147,9 @@ function WebhookHealthSummary({
     failureCount: number;
     lastFailedAt: string | null;
   }>;
+  onReset: () => void;
+  resetting: boolean;
+  resetDisabled: boolean;
 }) {
   if (webhooks.length === 0) {
     return (
@@ -145,6 +159,9 @@ function WebhookHealthSummary({
     );
   }
   const unhealthy = webhooks.filter((w) => !w.isHealthy);
+  const autoDisabled = webhooks.filter(
+    (w) => w.failureCount >= AUTO_DISABLE_THRESHOLD,
+  );
   if (unhealthy.length === 0) {
     return (
       <span className="inline-flex items-center gap-1 text-[11px] text-[var(--success)]">
@@ -156,17 +173,31 @@ function WebhookHealthSummary({
   const tooltipLines = unhealthy
     .map(
       (w) =>
-        `Team ${w.teamId}: ${w.failureCount} failure${w.failureCount === 1 ? "" : "s"}${w.lastFailedAt ? ` (last ${new Date(w.lastFailedAt).toLocaleString()})` : ""}`,
+        `Team ${w.teamId}: ${w.failureCount} failure${w.failureCount === 1 ? "" : "s"}${w.lastFailedAt ? ` (last ${new Date(w.lastFailedAt).toLocaleString()})` : ""}${w.failureCount >= AUTO_DISABLE_THRESHOLD ? " — auto-disabled" : ""}`,
     )
     .join("\n");
+  const label =
+    autoDisabled.length > 0
+      ? `${autoDisabled.length} auto-disabled, ${unhealthy.length - autoDisabled.length} unhealthy`
+      : `${unhealthy.length} unhealthy of ${webhooks.length}`;
   return (
-    <span
-      className="inline-flex items-center gap-1 text-[11px] text-[var(--danger)]"
-      title={tooltipLines}
-    >
-      <span className="h-1.5 w-1.5 rounded-full bg-[var(--danger)]" />
-      {unhealthy.length} unhealthy of {webhooks.length}
-    </span>
+    <div className="flex items-center gap-2">
+      <span
+        className="inline-flex items-center gap-1 text-[11px] text-[var(--danger)]"
+        title={tooltipLines}
+      >
+        <span className="h-1.5 w-1.5 rounded-full bg-[var(--danger)]" />
+        {label}
+      </span>
+      <button
+        type="button"
+        onClick={onReset}
+        disabled={resetDisabled || resetting}
+        className="text-[11px] font-medium text-[var(--accent)] hover:text-[var(--accent-hover)] disabled:opacity-50"
+      >
+        {resetting ? "Resetting…" : "Reset"}
+      </button>
+    </div>
   );
 }
 
