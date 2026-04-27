@@ -8,6 +8,8 @@ import {
   fetchClickUpTaskTimeEntries,
   fetchClickUpTeams,
   fetchClickUpTimeEntries,
+  startClickUpTimer,
+  stopClickUpTimer,
   updateClickUpTimeEntry,
 } from "@/lib/clickup/client";
 import { handleClickUpInvalidToken } from "@/server/services/clickup-error-handling";
@@ -22,16 +24,14 @@ const PULL_CHUNK_DAYS = 7;
 const PULL_CHUNK_MS = PULL_CHUNK_DAYS * 24 * 60 * 60 * 1000;
 
 export const clickupTimeEntryService = {
-  async pushOnStop(timeEntryId: string): Promise<void> {
+  async pushTimerStart(timeEntryId: string): Promise<void> {
     try {
       const entry = await prisma.timeEntry.findUnique({
         where: { id: timeEntryId },
         select: {
           id: true,
           userId: true,
-          startTime: true,
           endTime: true,
-          durationSeconds: true,
           note: true,
           clickupTimeEntryId: true,
           task: {
@@ -44,8 +44,83 @@ export const clickupTimeEntryService = {
       });
 
       if (!entry) return;
-      if (entry.endTime === null) return;
+      if (entry.endTime !== null) return;
       if (entry.clickupTimeEntryId) return;
+      if (!entry.task.clickupTaskId || !entry.task.clickupWorkspaceId) return;
+
+      const conn = await prisma.clickUpConnection.findUnique({
+        where: { userId: entry.userId },
+        select: {
+          accessTokenEncrypted: true,
+          encryptionIv: true,
+          isActive: true,
+        },
+      });
+      if (!conn || !conn.isActive) return;
+
+      const teamId = entry.task.clickupWorkspaceId;
+      const tid = entry.task.clickupTaskId;
+
+      try {
+        const token = decrypt(conn.accessTokenEncrypted, conn.encryptionIv);
+        const result = await startClickUpTimer(token, teamId, {
+          tid,
+          description: entry.note ?? undefined,
+          billable: false,
+        });
+        await prisma.timeEntry.update({
+          where: { id: entry.id },
+          data: {
+            clickupTimeEntryId: result.id,
+            clickupTeamId: teamId,
+            syncStatus: "SYNCED",
+            syncLastAttemptAt: new Date(),
+            syncLastError: null,
+          },
+        });
+      } catch (err) {
+        const msg = (err as Error).message ?? "Start timer push failed";
+        await handleClickUpInvalidToken(err, entry.userId);
+        await prisma.timeEntry.update({
+          where: { id: entry.id },
+          data: {
+            syncStatus: "FAILED",
+            syncLastAttemptAt: new Date(),
+            syncLastError: msg.slice(0, 200),
+            syncRetryCount: { increment: 1 },
+          },
+        });
+        console.error(`[clickup-push-start] entry ${entry.id}: ${msg}`);
+      }
+    } catch (err) {
+      console.error("[clickup-push-start] unexpected error:", err);
+    }
+  },
+
+  async pushOnStop(timeEntryId: string): Promise<void> {
+    try {
+      const entry = await prisma.timeEntry.findUnique({
+        where: { id: timeEntryId },
+        select: {
+          id: true,
+          userId: true,
+          startTime: true,
+          endTime: true,
+          durationSeconds: true,
+          note: true,
+          clickupTimeEntryId: true,
+          clickupTeamId: true,
+          task: {
+            select: {
+              clickupTaskId: true,
+              clickupWorkspaceId: true,
+            },
+          },
+        },
+      });
+
+      if (!entry) return;
+      if (entry.endTime === null) return;
       if (!entry.task.clickupTaskId || !entry.task.clickupWorkspaceId) return;
 
       const durationMs = (entry.durationSeconds ?? 0) * 1000;
@@ -72,28 +147,42 @@ export const clickupTimeEntryService = {
         return;
       }
 
-      const teamId = entry.task.clickupWorkspaceId;
+      const teamId = entry.clickupTeamId ?? entry.task.clickupWorkspaceId;
       const tid = entry.task.clickupTaskId;
+      const startedInClickUp = entry.clickupTimeEntryId !== null;
 
       try {
         const token = decrypt(conn.accessTokenEncrypted, conn.encryptionIv);
-        const result = await createClickUpTimeEntry(token, teamId, {
-          tid,
-          start: entry.startTime.getTime(),
-          duration: durationMs,
-          description: entry.note ?? undefined,
-          billable: false,
-        });
-        await prisma.timeEntry.update({
-          where: { id: entry.id },
-          data: {
-            syncStatus: "SYNCED",
-            clickupTimeEntryId: result.id,
-            clickupTeamId: teamId,
-            syncLastAttemptAt: new Date(),
-            syncLastError: null,
-          },
-        });
+        if (startedInClickUp) {
+          await stopClickUpTimer(token, teamId);
+          await prisma.timeEntry.update({
+            where: { id: entry.id },
+            data: {
+              syncStatus: "SYNCED",
+              clickupTeamId: teamId,
+              syncLastAttemptAt: new Date(),
+              syncLastError: null,
+            },
+          });
+        } else {
+          const result = await createClickUpTimeEntry(token, teamId, {
+            tid,
+            start: entry.startTime.getTime(),
+            duration: durationMs,
+            description: entry.note ?? undefined,
+            billable: false,
+          });
+          await prisma.timeEntry.update({
+            where: { id: entry.id },
+            data: {
+              syncStatus: "SYNCED",
+              clickupTimeEntryId: result.id,
+              clickupTeamId: teamId,
+              syncLastAttemptAt: new Date(),
+              syncLastError: null,
+            },
+          });
+        }
       } catch (err) {
         const msg = (err as Error).message ?? "Push failed";
         await handleClickUpInvalidToken(err, entry.userId);
