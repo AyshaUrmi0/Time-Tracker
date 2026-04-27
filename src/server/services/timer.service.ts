@@ -74,6 +74,7 @@ export const timerService = {
       if (result.stoppedPrevious) {
         await clickupTimeEntryService.pushOnStop(result.stoppedPrevious.id);
       }
+      await clickupTimeEntryService.pushTimerStart(result.timer.id);
       return result;
     } catch (err) {
       if (err instanceof Prisma.PrismaClientKnownRequestError) {
