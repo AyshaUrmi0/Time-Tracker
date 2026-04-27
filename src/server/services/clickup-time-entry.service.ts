@@ -107,6 +107,55 @@ export const clickupTimeEntryService = {
     }
   },
 
+  async retryFailedPushes(opts: { maxRetries?: number; batchSize?: number } = {}): Promise<{
+    attempted: number;
+    succeeded: number;
+    stillFailing: number;
+    skippedNotPushable: number;
+  }> {
+    const maxRetries = opts.maxRetries ?? 5;
+    const batchSize = opts.batchSize ?? 50;
+
+    const failures = await prisma.timeEntry.findMany({
+      where: {
+        syncStatus: "FAILED",
+        syncRetryCount: { lt: maxRetries },
+        endTime: { not: null },
+      },
+      select: { id: true, clickupTimeEntryId: true },
+      orderBy: { syncLastAttemptAt: "asc" },
+      take: batchSize,
+    });
+
+    let succeeded = 0;
+    let stillFailing = 0;
+    let skippedNotPushable = 0;
+
+    for (const entry of failures) {
+      if (entry.clickupTimeEntryId) {
+        const result = await this.pushEntryUpdate(entry.id);
+        if (result.pushed) succeeded++;
+        else stillFailing++;
+      } else {
+        await this.pushOnStop(entry.id);
+        const after = await prisma.timeEntry.findUnique({
+          where: { id: entry.id },
+          select: { syncStatus: true, clickupTimeEntryId: true },
+        });
+        if (after?.syncStatus === "SYNCED") succeeded++;
+        else if (after?.clickupTimeEntryId === null && after.syncStatus === "FAILED") stillFailing++;
+        else skippedNotPushable++;
+      }
+    }
+
+    return {
+      attempted: failures.length,
+      succeeded,
+      stillFailing,
+      skippedNotPushable,
+    };
+  },
+
   async pushEntryUpdate(
     localEntryId: string,
   ): Promise<{ pushed: boolean; reason?: string }> {
