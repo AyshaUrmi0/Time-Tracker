@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ApiErrors } from "@/lib/api-error";
 import { decrypt } from "@/lib/encryption";
 import { fetchClickUpTeamsWithMembers } from "@/lib/clickup/client";
+import { handleClickUpInvalidToken } from "@/server/services/clickup-error-handling";
 import type { ClickUpMembersSyncResult } from "@/features/clickup/types";
 import type { SessionUser } from "@/types";
 
@@ -24,7 +25,16 @@ export const clickupMembersService = {
     }
 
     const token = decrypt(conn.accessTokenEncrypted, conn.encryptionIv);
-    const { teams, members } = await fetchClickUpTeamsWithMembers(token);
+    let teams: Awaited<ReturnType<typeof fetchClickUpTeamsWithMembers>>["teams"];
+    let members: Awaited<ReturnType<typeof fetchClickUpTeamsWithMembers>>["members"];
+    try {
+      const result = await fetchClickUpTeamsWithMembers(token);
+      teams = result.teams;
+      members = result.members;
+    } catch (err) {
+      await handleClickUpInvalidToken(err, actor.userId);
+      throw err;
+    }
 
     const dedupedByClickupId = new Map<number, (typeof members)[number]>();
     for (const m of members) {

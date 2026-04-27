@@ -34,7 +34,9 @@ export function SettingsPageView() {
         ) : statusQuery.data?.connected ? (
           <ClickUpStatusCard status={statusQuery.data} />
         ) : (
-          <ClickUpConnectForm />
+          <ClickUpConnectForm
+            reconnectReason={statusQuery.data?.lastError ?? null}
+          />
         )}
 
         {isAdmin && isConnected && <ClickUpAdminActions />}
