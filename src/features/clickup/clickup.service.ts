@@ -1,5 +1,12 @@
 import { apiFetch } from "@/lib/api-client";
-import type { ClickUpConnectionStatus, ClickUpSyncResult } from "./types";
+import type {
+  ClickUpConnectionStatus,
+  ClickUpMembersSyncResult,
+  ClickUpSyncResult,
+  ClickUpTimeEntriesPullResult,
+  ClickUpWebhookRegisterResult,
+  ClickUpWebhookUnregisterResult,
+} from "./types";
 import type { ConnectClickUpInput } from "./clickup.schema";
 
 export const clickupService = {
@@ -27,6 +34,34 @@ export const clickupService = {
     return apiFetch<{ result: ClickUpSyncResult }>(
       "/api/integrations/clickup/sync",
       { method: "POST" },
+    ).then((r) => r.result);
+  },
+
+  syncMembers() {
+    return apiFetch<{ result: ClickUpMembersSyncResult }>(
+      "/api/integrations/clickup/members/sync",
+      { method: "POST" },
+    ).then((r) => r.result);
+  },
+
+  pullTimeEntries(days = 7) {
+    return apiFetch<{ result: ClickUpTimeEntriesPullResult }>(
+      `/api/integrations/clickup/time-entries/sync?days=${days}`,
+      { method: "POST" },
+    ).then((r) => r.result);
+  },
+
+  registerWebhooks() {
+    return apiFetch<{ result: ClickUpWebhookRegisterResult }>(
+      "/api/integrations/clickup/webhook/register",
+      { method: "POST" },
+    ).then((r) => r.result);
+  },
+
+  unregisterWebhooks() {
+    return apiFetch<{ result: ClickUpWebhookUnregisterResult }>(
+      "/api/integrations/clickup/webhook/register",
+      { method: "DELETE" },
     ).then((r) => r.result);
   },
 };
