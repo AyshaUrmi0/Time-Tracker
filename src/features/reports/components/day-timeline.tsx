@@ -50,7 +50,7 @@ export function DayTimeline({ buckets, todayYmd }: Props) {
     <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-sm)]">
       <header className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="text-[14px] font-semibold text-[var(--text-primary)]">
+          <h2 className="text-[16px] font-semibold text-[var(--text-primary)]">
             Daily breakdown
           </h2>
           <p className="mt-0.5 text-[11.5px] text-[var(--text-secondary)]">
@@ -70,7 +70,7 @@ export function DayTimeline({ buckets, todayYmd }: Props) {
             )}
           </p>
         </div>
-        <div className="flex items-center gap-3 text-[11px] text-[var(--text-muted)]">
+        <div className="flex items-center gap-3 text-[13px] text-[var(--text-muted)]">
           <span className="flex items-center gap-1.5">
             <span className="inline-block h-2.5 w-2.5 rounded-sm bg-[var(--accent)]/75" />
             Tracked
@@ -84,7 +84,7 @@ export function DayTimeline({ buckets, todayYmd }: Props) {
 
       <div className="flex gap-3">
         <div
-          className="flex w-11 flex-col justify-between pr-1 text-right text-[10px] tabular text-[var(--text-muted)]"
+          className="flex w-11 flex-col justify-between pr-1 text-right text-[12px] tabular text-[var(--text-muted)]"
           style={{ height: CHART_HEIGHT }}
           aria-hidden
         >
@@ -164,7 +164,7 @@ export function DayTimeline({ buckets, todayYmd }: Props) {
                       : "text-[var(--text-muted)]"
                   }`}
                 >
-                  <span className="text-[10px] font-semibold uppercase tracking-wide">
+                  <span className="text-[12px] font-semibold uppercase tracking-wide">
                     {weekdayLabel(b.key)}
                   </span>
                   {!dense && (

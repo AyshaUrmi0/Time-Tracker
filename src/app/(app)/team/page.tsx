@@ -105,10 +105,10 @@ export default function TeamPage() {
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-[22px] font-semibold tracking-tight text-[var(--text-primary)]">
+          <h1 className="text-[24px] font-semibold tracking-tight text-[var(--text-primary)]">
             Team
           </h1>
-          <p className="mt-1 text-[13px] text-[var(--text-secondary)]">
+          <p className="mt-1 text-[15px] text-[var(--text-secondary)]">
             Manage roles, archive former members, and add new people.
           </p>
         </div>
