@@ -113,6 +113,7 @@ export function usePullClickUpTimeEntries() {
 }
 
 export function useRegisterClickUpWebhooks() {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: () => clickupService.registerWebhooks(),
     onSuccess: (result) => {
@@ -126,12 +127,14 @@ export function useRegisterClickUpWebhooks() {
       const summary = parts.length > 0 ? parts.join(", ") : "No teams to register.";
       if (failed > 0) toast.info(summary);
       else toast.success(summary);
+      qc.invalidateQueries({ queryKey: ["clickup", "webhook-health"] });
     },
     onError: (err) => toast.error("Couldn't register webhooks.", err),
   });
 }
 
 export function useUnregisterClickUpWebhooks() {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: () => clickupService.unregisterWebhooks(),
     onSuccess: (result) => {
@@ -144,7 +147,17 @@ export function useUnregisterClickUpWebhooks() {
       } else {
         toast.success(summary);
       }
+      qc.invalidateQueries({ queryKey: ["clickup", "webhook-health"] });
     },
     onError: (err) => toast.error("Couldn't unregister webhooks.", err),
+  });
+}
+
+export function useClickUpWebhookHealth(enabled: boolean) {
+  return useQuery({
+    queryKey: ["clickup", "webhook-health"] as const,
+    queryFn: () => clickupService.webhookHealth(),
+    enabled,
+    refetchInterval: 30_000,
   });
 }
