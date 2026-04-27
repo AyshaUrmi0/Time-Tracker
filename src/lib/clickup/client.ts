@@ -259,6 +259,56 @@ export async function fetchClickUpTasksPage(
   return { tasks: json.tasks ?? [], lastPage: json.last_page ?? false };
 }
 
+export type ClickUpListStatus = {
+  status: string;
+  type: string;
+  color: string | null;
+  orderindex: number;
+};
+
+type ClickUpListResponse = {
+  statuses?: Array<{
+    status: string;
+    type: string;
+    color?: string | null;
+    orderindex: number;
+  }>;
+};
+
+export async function fetchClickUpListStatuses(
+  token: string,
+  listId: string,
+): Promise<ClickUpListStatus[]> {
+  const json = await clickupFetch<ClickUpListResponse>(`/list/${listId}`, token);
+  return (json.statuses ?? []).map((s) => ({
+    status: s.status,
+    type: s.type,
+    color: s.color ?? null,
+    orderindex: s.orderindex,
+  }));
+}
+
+export type UpdateClickUpTaskInput = {
+  name?: string;
+  description?: string | null;
+  status?: string;
+};
+
+export async function updateClickUpTask(
+  token: string,
+  taskId: string,
+  input: UpdateClickUpTaskInput,
+): Promise<void> {
+  const body: Record<string, unknown> = {};
+  if (input.name !== undefined) body.name = input.name;
+  if (input.description !== undefined) body.description = input.description ?? "";
+  if (input.status !== undefined) body.status = input.status;
+  await clickupFetch<unknown>(`/task/${taskId}`, token, {
+    method: "PUT",
+    body,
+  });
+}
+
 export type CreateClickUpTimeEntryInput = {
   tid: string;
   start: number;

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { ApiErrors } from "@/lib/api-error";
+import { clickupTaskPushService } from "@/server/services/clickup-task-push.service";
 import type {
   CreateTaskInput,
   UpdateTaskInput,
@@ -95,7 +96,7 @@ export const tasksService = {
       }
     }
 
-    return prisma.task.update({
+    const updated = await prisma.task.update({
       where: { id },
       data: {
         ...(input.title !== undefined ? { title: input.title } : {}),
@@ -105,6 +106,14 @@ export const tasksService = {
       },
       select: taskSelect,
     });
+
+    await clickupTaskPushService.pushTaskUpdate(id, {
+      title: input.title !== undefined,
+      description: input.description !== undefined,
+      status: input.status !== undefined,
+    });
+
+    return updated;
   },
 
   async archive(user: SessionUser, id: string) {
