@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     const { searchParams } = new URL(req.url);
     const daysRaw = searchParams.get("days");
     const days = daysRaw ? Number.parseInt(daysRaw, 10) : undefined;
-    const result = await clickupTimeEntryService.pullFromClickUp(user, {
+    const result = await clickupTimeEntryService.pullFromClickUp(user.userId, {
       days: Number.isFinite(days) ? days : undefined,
     });
     return NextResponse.json({ result });

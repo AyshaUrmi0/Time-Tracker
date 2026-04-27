@@ -8,7 +8,6 @@ import {
   fetchClickUpTimeEntries,
 } from "@/lib/clickup/client";
 import type { ClickUpTimeEntriesPullResult } from "@/features/clickup/types";
-import type { SessionUser } from "@/types";
 
 const DEFAULT_PULL_DAYS = 7;
 const MAX_PULL_DAYS = 90;
@@ -105,7 +104,7 @@ export const clickupTimeEntryService = {
   },
 
   async pullFromClickUp(
-    actor: SessionUser,
+    connectionUserId: string,
     opts: { days?: number } = {},
   ): Promise<ClickUpTimeEntriesPullResult> {
     const days = Math.min(
@@ -114,7 +113,7 @@ export const clickupTimeEntryService = {
     );
 
     const conn = await prisma.clickUpConnection.findUnique({
-      where: { userId: actor.userId },
+      where: { userId: connectionUserId },
       select: {
         accessTokenEncrypted: true,
         encryptionIv: true,

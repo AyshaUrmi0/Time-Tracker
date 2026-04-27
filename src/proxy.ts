@@ -10,6 +10,7 @@ export default auth((req) => {
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/api/health") ||
     pathname === "/api/integrations/clickup/webhook" ||
+    pathname.startsWith("/api/cron/") ||
     pathname.startsWith("/_next") ||
     PUBLIC_PATHS.has(pathname)
   ) {
