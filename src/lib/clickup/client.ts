@@ -519,3 +519,95 @@ export async function createClickUpTimeEntry(
   );
   return { id: json.data.id };
 }
+
+export type StartClickUpTimerInput = {
+  tid: string;
+  description?: string;
+  billable?: boolean;
+};
+
+type ClickUpStartTimerResponse = {
+  data: { id: string };
+};
+
+export async function startClickUpTimer(
+  token: string,
+  teamId: string,
+  input: StartClickUpTimerInput,
+): Promise<{ id: string }> {
+  const json = await clickupFetch<ClickUpStartTimerResponse>(
+    `/team/${teamId}/time_entries/start`,
+    token,
+    {
+      method: "POST",
+      body: {
+        tid: input.tid,
+        billable: input.billable ?? false,
+        ...(input.description ? { description: input.description } : {}),
+      },
+    },
+  );
+  return { id: json.data.id };
+}
+
+type ClickUpStopTimerResponse = {
+  data?: { id?: string | null } | null;
+};
+
+export async function stopClickUpTimer(
+  token: string,
+  teamId: string,
+): Promise<{ id: string | null }> {
+  const json = await clickupFetch<ClickUpStopTimerResponse>(
+    `/team/${teamId}/time_entries/stop`,
+    token,
+    { method: "POST" },
+  );
+  return { id: json.data?.id ?? null };
+}
+
+type ClickUpCurrentTimerResponse = {
+  data?: {
+    id?: string | null;
+    task?: { id?: string | null } | null;
+    wid?: string | null;
+    user?: { id?: number | null } | null;
+    start?: string | number | null;
+    description?: string | null;
+    billable?: boolean | null;
+  } | null;
+};
+
+export type ClickUpRunningTimer = {
+  id: string;
+  taskId: string | null;
+  teamId: string;
+  userId: number;
+  startMs: number;
+  description: string | null;
+  billable: boolean;
+};
+
+export async function getCurrentClickUpTimer(
+  token: string,
+  teamId: string,
+): Promise<ClickUpRunningTimer | null> {
+  const json = await clickupFetch<ClickUpCurrentTimerResponse>(
+    `/team/${teamId}/time_entries/current`,
+    token,
+  );
+  const d = json.data;
+  if (!d || !d.id) return null;
+  const start = parseMs(d.start);
+  if (start === null) return null;
+  if (typeof d.user?.id !== "number") return null;
+  return {
+    id: d.id,
+    taskId: d.task?.id ?? null,
+    teamId: d.wid ?? teamId,
+    userId: d.user.id,
+    startMs: start,
+    description: d.description ?? null,
+    billable: d.billable ?? false,
+  };
+}
