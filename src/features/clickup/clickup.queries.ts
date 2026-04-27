@@ -161,3 +161,21 @@ export function useClickUpWebhookHealth(enabled: boolean) {
     refetchInterval: 30_000,
   });
 }
+
+export function useResetClickUpWebhookHealth() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => clickupService.resetWebhookHealth(),
+    onSuccess: (result) => {
+      if (result.reset === 0) {
+        toast.info("No webhooks to reset.");
+      } else {
+        toast.success(
+          `Reset ${result.reset} webhook${result.reset === 1 ? "" : "s"}. Failure counters cleared.`,
+        );
+      }
+      qc.invalidateQueries({ queryKey: ["clickup", "webhook-health"] });
+    },
+    onError: (err) => toast.error("Couldn't reset webhook health.", err),
+  });
+}
