@@ -16,6 +16,7 @@ import { EntryFormDialog } from "@/features/time-entries/components/entry-form-d
 import type { TimeEntry } from "@/features/time-entries/types";
 
 type Range = "today" | "week" | "month";
+type TypeFilter = "all" | "timer" | "manual";
 
 function computeRange(range: Range): { from: string; to: string } {
   const now = new Date();
@@ -45,6 +46,7 @@ export default function TimesheetPage() {
 
   const [range, setRange] = useState<Range>("week");
   const [userFilter, setUserFilter] = useState<string>("me");
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
 
   const rangeWindow = useMemo(() => computeRange(range), [range]);
 
@@ -69,10 +71,12 @@ export default function TimesheetPage() {
     | { open: true; mode: "edit"; entry: TimeEntry }
   >({ open: false });
 
-  const entries = useMemo(
-    () => entriesQuery.data ?? [],
-    [entriesQuery.data],
-  );
+  const entries = useMemo(() => {
+    const all = entriesQuery.data ?? [];
+    if (typeFilter === "timer") return all.filter((e) => !e.isManual);
+    if (typeFilter === "manual") return all.filter((e) => e.isManual);
+    return all;
+  }, [entriesQuery.data, typeFilter]);
   const totalSec = useMemo(
     () => entries.reduce((sum, e) => sum + (e.durationSeconds ?? 0), 0),
     [entries],
@@ -105,22 +109,24 @@ export default function TimesheetPage() {
             Review, edit, and log time entries manually.
           </p>
         </div>
-        <Button onClick={() => setFormState({ open: true, mode: "create" })}>
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden
-          >
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-          Log time
-        </Button>
+        {isAdmin && (
+          <Button onClick={() => setFormState({ open: true, mode: "create" })}>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            Log time
+          </Button>
+        )}
       </div>
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 shadow-[var(--shadow-sm)]">
@@ -137,6 +143,16 @@ export default function TimesheetPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value as TypeFilter)}
+            aria-label="Entry type"
+            className="h-8 appearance-none rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 text-[14px] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
+          >
+            <option value="all">All types</option>
+            <option value="timer">Timer entries</option>
+            <option value="manual">Manual entries</option>
+          </select>
           {isAdmin && (
             <select
               value={userFilter}
@@ -171,14 +187,20 @@ export default function TimesheetPage() {
         ) : entries.length === 0 ? (
           <EmptyState
             title="No entries in this range"
-            description="Log time manually to fill in work you tracked elsewhere, or start the timer."
+            description={
+              isAdmin
+                ? "Log time manually to fill in work you tracked elsewhere, or start the timer."
+                : "Start the timer from the top bar to track work."
+            }
             action={
-              <Button
-                size="sm"
-                onClick={() => setFormState({ open: true, mode: "create" })}
-              >
-                Log time
-              </Button>
+              isAdmin ? (
+                <Button
+                  size="sm"
+                  onClick={() => setFormState({ open: true, mode: "create" })}
+                >
+                  Log time
+                </Button>
+              ) : undefined
             }
           />
         ) : (
