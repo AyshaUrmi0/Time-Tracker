@@ -8,7 +8,11 @@ import { ApiClientError } from "@/lib/api-client";
 import { connectClickUpSchema } from "../clickup.schema";
 import { useConnectClickUp } from "../clickup.queries";
 
-export function ClickUpConnectForm() {
+export function ClickUpConnectForm({
+  reconnectReason,
+}: {
+  reconnectReason?: string | null;
+} = {}) {
   const [token, setToken] = useState("");
   const [fieldError, setFieldError] = useState<string | null>(null);
   const connect = useConnectClickUp();
@@ -55,7 +59,7 @@ export function ClickUpConnectForm() {
     >
       <div>
         <h2 className="text-[15px] font-semibold text-[var(--text-primary)]">
-          Connect ClickUp
+          {reconnectReason ? "Reconnect ClickUp" : "Connect ClickUp"}
         </h2>
         <p className="mt-1 text-[13px] text-[var(--text-secondary)]">
           Paste your ClickUp personal API token. We&apos;ll verify it and store
@@ -66,6 +70,11 @@ export function ClickUpConnectForm() {
           .
         </p>
       </div>
+      {reconnectReason && (
+        <div className="rounded-lg border border-[var(--danger)]/20 bg-[var(--danger-soft)] px-3 py-2 text-[12px] text-[var(--danger)]">
+          {reconnectReason}
+        </div>
+      )}
       <FormField
         id="clickup-token"
         label="Personal API token"

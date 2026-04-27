@@ -10,6 +10,7 @@ import {
   fetchClickUpTeams,
 } from "@/lib/clickup/client";
 import { upsertSingleTaskFromClickUp } from "@/server/services/clickup-sync.service";
+import { handleClickUpInvalidToken } from "@/server/services/clickup-error-handling";
 import type {
   ClickUpWebhookProcessResult,
   ClickUpWebhookRegisterResult,
@@ -107,7 +108,13 @@ export const clickupWebhookService = {
     }
 
     const token = decrypt(conn.accessTokenEncrypted, conn.encryptionIv);
-    const teams = await fetchClickUpTeams(token);
+    let teams;
+    try {
+      teams = await fetchClickUpTeams(token);
+    } catch (err) {
+      await handleClickUpInvalidToken(err, actor.userId);
+      throw err;
+    }
 
     const results: ClickUpWebhookRegisterResult["webhooks"] = [];
     for (const team of teams) {
@@ -209,6 +216,7 @@ export const clickupWebhookService = {
             webhookId: wh.clickupWebhookId,
             error: (err as Error).message?.slice(0, 200) ?? "delete failed",
           });
+          await handleClickUpInvalidToken(err, actor.userId);
         }
       }
       await prisma.clickUpWebhook.delete({ where: { id: wh.id } });
@@ -338,6 +346,7 @@ export const clickupWebhookService = {
       };
     } catch (err) {
       const msg = (err as Error).message?.slice(0, 200) ?? "process failed";
+      await handleClickUpInvalidToken(err, wh.connection.userId);
       await prisma.clickUpWebhookEvent.update({
         where: { id: recordId },
         data: { errorMessage: msg },

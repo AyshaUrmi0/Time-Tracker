@@ -9,6 +9,7 @@ import {
   fetchClickUpTimeEntries,
   updateClickUpTimeEntry,
 } from "@/lib/clickup/client";
+import { handleClickUpInvalidToken } from "@/server/services/clickup-error-handling";
 import type { ClickUpTimeEntriesPullResult } from "@/features/clickup/types";
 
 const DEFAULT_PULL_DAYS = 7;
@@ -89,6 +90,7 @@ export const clickupTimeEntryService = {
         });
       } catch (err) {
         const msg = (err as Error).message ?? "Push failed";
+        await handleClickUpInvalidToken(err, entry.userId);
         await prisma.timeEntry.update({
           where: { id: entry.id },
           data: {
@@ -177,6 +179,15 @@ export const clickupTimeEntryService = {
     } catch (err) {
       const msg = (err as Error).message?.slice(0, 200) ?? "push failed";
       console.error(`[clickup-push] entry update ${localEntryId} failed: ${msg}`);
+      const ownerUserId = (
+        await prisma.timeEntry
+          .findUnique({
+            where: { id: localEntryId },
+            select: { userId: true },
+          })
+          .catch(() => null)
+      )?.userId;
+      if (ownerUserId) await handleClickUpInvalidToken(err, ownerUserId);
       await prisma.timeEntry
         .update({
           where: { id: localEntryId },
@@ -230,6 +241,7 @@ export const clickupTimeEntryService = {
       console.error(
         `[clickup-push] entry delete ${meta.clickupTimeEntryId} failed: ${msg}`,
       );
+      await handleClickUpInvalidToken(err, meta.ownerUserId);
       return { pushed: false, reason: msg };
     }
   },
@@ -259,7 +271,13 @@ export const clickupTimeEntryService = {
     }
 
     const token = decrypt(conn.accessTokenEncrypted, conn.encryptionIv);
-    const teams = await fetchClickUpTeams(token);
+    let teams: Awaited<ReturnType<typeof fetchClickUpTeams>>;
+    try {
+      teams = await fetchClickUpTeams(token);
+    } catch (err) {
+      await handleClickUpInvalidToken(err, connectionUserId);
+      throw err;
+    }
 
     const endMs = Date.now();
     const startMs = endMs - days * 24 * 60 * 60 * 1000;
@@ -288,6 +306,7 @@ export const clickupTimeEntryService = {
         errors.push(
           `team ${team.id}: ${(err as Error).message?.slice(0, 200) ?? "fetch failed"}`,
         );
+        await handleClickUpInvalidToken(err, connectionUserId);
         continue;
       }
 

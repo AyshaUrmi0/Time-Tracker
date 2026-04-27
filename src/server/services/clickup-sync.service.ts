@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { ApiErrors } from "@/lib/api-error";
 import { decrypt } from "@/lib/encryption";
+import { handleClickUpInvalidToken } from "@/server/services/clickup-error-handling";
 import {
   fetchClickUpFolders,
   fetchClickUpFolderlessLists,
@@ -348,6 +349,7 @@ export const clickupSyncService = {
     } catch (err) {
       topLevelError = (err as Error).message ?? "Sync failed";
       ctx.errors.unshift(topLevelError);
+      await handleClickUpInvalidToken(err, actor.userId);
     }
 
     const finishedAt = new Date();
