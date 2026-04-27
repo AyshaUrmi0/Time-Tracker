@@ -151,12 +151,15 @@ function EntryRow({
             {entry.note}
           </p>
         )}
-        {showUser && (
-          <div className="mt-1 inline-flex items-center gap-1.5 text-[11px] text-[var(--text-muted)]">
-            <Avatar name={entry.user.name} id={entry.user.id} size={16} />
-            {entry.user.name}
-          </div>
-        )}
+        <div className="mt-1 inline-flex flex-wrap items-center gap-2">
+          {showUser && (
+            <span className="inline-flex items-center gap-1.5 text-[11px] text-[var(--text-muted)]">
+              <Avatar name={entry.user.name} id={entry.user.id} size={16} />
+              {entry.user.name}
+            </span>
+          )}
+          <SyncStatusBadge entry={entry} />
+        </div>
       </div>
 
       <div className="hidden text-[12px] text-[var(--text-secondary)] sm:block">
@@ -181,6 +184,44 @@ function EntryRow({
       </div>
     </li>
   );
+}
+
+function SyncStatusBadge({ entry }: { entry: TimeEntry }) {
+  if (!entry.task.clickupTaskId) return null;
+  if (entry.syncStatus === "SYNCED") {
+    return (
+      <span
+        className="inline-flex items-center gap-1 text-[11px] text-[var(--success)]"
+        title="Synced to ClickUp"
+      >
+        <span className="h-1.5 w-1.5 rounded-full bg-[var(--success)]" />
+        Synced
+      </span>
+    );
+  }
+  if (entry.syncStatus === "FAILED") {
+    return (
+      <span
+        className="inline-flex items-center gap-1 text-[11px] text-[var(--danger)]"
+        title={entry.syncLastError ?? "Sync to ClickUp failed"}
+      >
+        <span className="h-1.5 w-1.5 rounded-full bg-[var(--danger)]" />
+        Sync failed
+      </span>
+    );
+  }
+  if (entry.endTime) {
+    return (
+      <span
+        className="inline-flex items-center gap-1 text-[11px] text-[var(--text-muted)]"
+        title="Not yet pushed to ClickUp"
+      >
+        <span className="h-1.5 w-1.5 rounded-full bg-[var(--text-muted)]" />
+        Pending sync
+      </span>
+    );
+  }
+  return null;
 }
 
 const MENU_WIDTH = 160;

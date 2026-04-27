@@ -76,6 +76,7 @@ function TaskRow({
             Archived
           </Badge>
         )}
+        {task.clickupTaskId && <ClickUpLink url={task.clickupUrl} />}
       </td>
       <td className="px-4 py-3">
         <StatusBadge status={task.status} />
@@ -112,6 +113,45 @@ const MENU_WIDTH = 160;
 const MENU_HEIGHT = 80;
 const MENU_GAP = 6;
 const VIEWPORT_PADDING = 8;
+
+function ClickUpLink({ url }: { url: string | null }) {
+  const inner = (
+    <span
+      className="ml-2 inline-flex items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--surface-hover)] px-1.5 py-0.5 text-[11px] font-medium text-[var(--text-secondary)]"
+      title="Synced with ClickUp"
+    >
+      ClickUp
+      {url && (
+        <svg
+          width="10"
+          height="10"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden
+        >
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+          <path d="M15 3h6v6" />
+          <path d="M10 14L21 3" />
+        </svg>
+      )}
+    </span>
+  );
+  if (!url) return inner;
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {inner}
+    </a>
+  );
+}
 
 function RowActionsMenu({
   onEdit,

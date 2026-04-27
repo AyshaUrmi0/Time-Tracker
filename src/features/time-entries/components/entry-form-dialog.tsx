@@ -152,6 +152,9 @@ export function EntryFormDialog({
           updatedAt: "",
           createdBy: { id: "", name: "", email: "" },
           assignedTo: null,
+          clickupTaskId: null,
+          clickupUrl: null,
+          clickupLastSyncedAt: null,
         });
       }
     }

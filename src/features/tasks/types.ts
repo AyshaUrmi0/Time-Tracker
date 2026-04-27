@@ -14,6 +14,9 @@ export type Task = {
   updatedAt: string;
   createdBy: TaskUser;
   assignedTo: TaskUser | null;
+  clickupTaskId: string | null;
+  clickupUrl: string | null;
+  clickupLastSyncedAt: string | null;
 };
 
 export type TaskListFilters = {
