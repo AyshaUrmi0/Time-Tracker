@@ -46,6 +46,15 @@ export type ClickUpWebhookUnregisterResult = {
   failures: Array<{ webhookId: string; error: string }>;
 };
 
+export type ClickUpMembersSyncResult = {
+  teamsScanned: number;
+  membersFound: number;
+  linked: number;
+  alreadyLinked: number;
+  unmatchedEmails: string[];
+  conflicts: Array<{ email: string; clickupUserId: number; reason: string }>;
+};
+
 export type ClickUpWebhookProcessResult =
   | { ok: false; skipped: string }
   | {

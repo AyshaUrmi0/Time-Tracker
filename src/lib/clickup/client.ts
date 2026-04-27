@@ -88,12 +88,21 @@ export type ClickUpTeam = {
   avatar: string | null;
 };
 
+type ClickUpRawTeamMember = {
+  user?: {
+    id?: number;
+    username?: string | null;
+    email?: string | null;
+  } | null;
+};
+
 type ClickUpTeamsResponse = {
   teams: Array<{
     id: string;
     name: string;
     color?: string | null;
     avatar?: string | null;
+    members?: ClickUpRawTeamMember[];
   }>;
 };
 
@@ -105,6 +114,42 @@ export async function fetchClickUpTeams(token: string): Promise<ClickUpTeam[]> {
     color: t.color ?? null,
     avatar: t.avatar ?? null,
   }));
+}
+
+export type ClickUpTeamMember = {
+  teamId: string;
+  teamName: string;
+  clickupUserId: number;
+  username: string | null;
+  email: string;
+};
+
+export async function fetchClickUpTeamsWithMembers(
+  token: string,
+): Promise<{ teams: ClickUpTeam[]; members: ClickUpTeamMember[] }> {
+  const json = await clickupFetch<ClickUpTeamsResponse>("/team", token);
+  const teams: ClickUpTeam[] = [];
+  const members: ClickUpTeamMember[] = [];
+  for (const t of json.teams) {
+    teams.push({
+      id: t.id,
+      name: t.name,
+      color: t.color ?? null,
+      avatar: t.avatar ?? null,
+    });
+    for (const m of t.members ?? []) {
+      const u = m.user;
+      if (!u || typeof u.id !== "number" || !u.email) continue;
+      members.push({
+        teamId: t.id,
+        teamName: t.name,
+        clickupUserId: u.id,
+        username: u.username ?? null,
+        email: u.email,
+      });
+    }
+  }
+  return { teams, members };
 }
 
 export type ClickUpSpace = { id: string; name: string };
