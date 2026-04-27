@@ -59,6 +59,8 @@ export type ClickUpTimeEntriesPullResult = {
   teamsScanned: number;
   entriesScanned: number;
   imported: number;
+  updated: number;
+  deletedLocally: number;
   skippedAlreadyLocal: number;
   skippedNoTask: number;
   skippedNoUser: number;

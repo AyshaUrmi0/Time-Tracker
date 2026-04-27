@@ -266,11 +266,16 @@ export const clickupTimeEntryService = {
 
     let entriesScanned = 0;
     let imported = 0;
+    let updated = 0;
+    let deletedLocally = 0;
     let skippedAlreadyLocal = 0;
     let skippedNoTask = 0;
     let skippedNoUser = 0;
     let skippedNoDuration = 0;
     const errors: string[] = [];
+
+    const windowStart = new Date(startMs);
+    const windowEnd = new Date(endMs);
 
     for (const team of teams) {
       let remoteEntries: Awaited<ReturnType<typeof fetchClickUpTimeEntries>>;
@@ -287,18 +292,44 @@ export const clickupTimeEntryService = {
       }
 
       entriesScanned += remoteEntries.length;
-      if (remoteEntries.length === 0) continue;
 
-      const remoteIds = remoteEntries.map((e) => e.id);
-      const existing = await prisma.timeEntry.findMany({
-        where: { clickupTimeEntryId: { in: remoteIds } },
-        select: { clickupTimeEntryId: true },
+      const remoteIds = new Set(remoteEntries.map((e) => e.id));
+
+      const localInWindow = await prisma.timeEntry.findMany({
+        where: {
+          clickupTeamId: team.id,
+          clickupTimeEntryId: { not: null },
+          startTime: { gte: windowStart, lt: windowEnd },
+        },
+        select: {
+          id: true,
+          clickupTimeEntryId: true,
+          startTime: true,
+          durationSeconds: true,
+          note: true,
+          taskId: true,
+        },
       });
-      const existingIds = new Set(
-        existing
-          .map((e) => e.clickupTimeEntryId)
-          .filter((id): id is string => id !== null),
-      );
+
+      const localByClickupId = new Map<string, (typeof localInWindow)[number]>();
+      for (const l of localInWindow) {
+        if (l.clickupTimeEntryId) localByClickupId.set(l.clickupTimeEntryId, l);
+      }
+
+      for (const local of localInWindow) {
+        if (local.clickupTimeEntryId && !remoteIds.has(local.clickupTimeEntryId)) {
+          try {
+            await prisma.timeEntry.delete({ where: { id: local.id } });
+            deletedLocally++;
+          } catch (err) {
+            errors.push(
+              `delete local ${local.id}: ${(err as Error).message?.slice(0, 200) ?? "delete failed"}`,
+            );
+          }
+        }
+      }
+
+      if (remoteEntries.length === 0) continue;
 
       const remoteTaskIds = Array.from(
         new Set(remoteEntries.map((e) => e.taskId).filter((id): id is string => !!id)),
@@ -330,14 +361,61 @@ export const clickupTimeEntryService = {
       }
 
       for (const e of remoteEntries) {
-        if (existingIds.has(e.id)) {
-          skippedAlreadyLocal++;
-          continue;
-        }
         if (e.duration <= 0) {
           skippedNoDuration++;
           continue;
         }
+
+        const existingLocal = localByClickupId.get(e.id);
+        if (existingLocal) {
+          const remoteStartMs = e.start;
+          const remoteDurationSec = Math.round(e.duration / 1000);
+          const localStartMs = existingLocal.startTime.getTime();
+          const localDurationSec = existingLocal.durationSeconds ?? 0;
+          const localNote = existingLocal.note ?? null;
+          const remoteNote = e.description ?? null;
+          const remoteTaskLocalId = e.taskId ? taskByClickup.get(e.taskId) : undefined;
+
+          const startChanged = remoteStartMs !== localStartMs;
+          const durationChanged = remoteDurationSec !== localDurationSec;
+          const noteChanged = (localNote ?? "") !== (remoteNote ?? "");
+          const taskChanged =
+            remoteTaskLocalId !== undefined &&
+            remoteTaskLocalId !== existingLocal.taskId;
+
+          if (startChanged || durationChanged || noteChanged || taskChanged) {
+            try {
+              await prisma.timeEntry.update({
+                where: { id: existingLocal.id },
+                data: {
+                  ...(startChanged ? { startTime: new Date(remoteStartMs) } : {}),
+                  ...(durationChanged || startChanged
+                    ? {
+                        endTime: new Date(remoteStartMs + e.duration),
+                        durationSeconds: remoteDurationSec,
+                      }
+                    : {}),
+                  ...(noteChanged ? { note: remoteNote } : {}),
+                  ...(taskChanged && remoteTaskLocalId
+                    ? { taskId: remoteTaskLocalId }
+                    : {}),
+                  syncStatus: "SYNCED",
+                  syncLastAttemptAt: new Date(),
+                  syncLastError: null,
+                },
+              });
+              updated++;
+            } catch (err) {
+              errors.push(
+                `update entry ${e.id}: ${(err as Error).message?.slice(0, 200) ?? "update failed"}`,
+              );
+            }
+          } else {
+            skippedAlreadyLocal++;
+          }
+          continue;
+        }
+
         if (!e.taskId || !taskByClickup.has(e.taskId)) {
           skippedNoTask++;
           continue;
@@ -390,6 +468,8 @@ export const clickupTimeEntryService = {
       teamsScanned: teams.length,
       entriesScanned,
       imported,
+      updated,
+      deletedLocally,
       skippedAlreadyLocal,
       skippedNoTask,
       skippedNoUser,
