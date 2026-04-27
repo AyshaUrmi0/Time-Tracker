@@ -1,5 +1,5 @@
 export type ClickUpConnectionStatus =
-  | { connected: false }
+  | { connected: false; lastError?: string | null }
   | {
       connected: true;
       clickupUserId: number;

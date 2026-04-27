@@ -22,7 +22,7 @@ export const clickupService = {
     });
 
     if (!conn || !conn.isActive || conn.revokedAt) {
-      return { connected: false };
+      return { connected: false, lastError: conn?.lastError ?? null };
     }
 
     return {

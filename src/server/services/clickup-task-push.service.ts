@@ -7,6 +7,7 @@ import {
   type ClickUpListStatus,
   type UpdateClickUpTaskInput,
 } from "@/lib/clickup/client";
+import { handleClickUpInvalidToken } from "@/server/services/clickup-error-handling";
 import type { TaskStatus } from "@prisma/client";
 
 export type ClickUpTaskPushResult =
@@ -92,6 +93,13 @@ export const clickupTaskPushService = {
     } catch (err) {
       const msg = (err as Error).message?.slice(0, 200) ?? "push_failed";
       console.error(`[clickup-push] archive ${localTaskId} failed: ${msg}`);
+      const task = await prisma.task
+        .findUnique({
+          where: { id: localTaskId },
+          select: { createdById: true },
+        })
+        .catch(() => null);
+      if (task) await handleClickUpInvalidToken(err, task.createdById);
       return { pushed: false, reason: msg };
     }
   },
@@ -207,6 +215,13 @@ export const clickupTaskPushService = {
     } catch (err) {
       const msg = (err as Error).message?.slice(0, 200) ?? "push_failed";
       console.error(`[clickup-push] task ${localTaskId} failed: ${msg}`);
+      const ownerInfo = await prisma.task
+        .findUnique({
+          where: { id: localTaskId },
+          select: { createdById: true },
+        })
+        .catch(() => null);
+      if (ownerInfo) await handleClickUpInvalidToken(err, ownerInfo.createdById);
       return { pushed: false, reason: msg };
     }
   },
