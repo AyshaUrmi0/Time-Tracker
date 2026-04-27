@@ -4,8 +4,10 @@ import { ApiErrors } from "@/lib/api-error";
 import { decrypt } from "@/lib/encryption";
 import {
   createClickUpTimeEntry,
+  deleteClickUpTimeEntry,
   fetchClickUpTeams,
   fetchClickUpTimeEntries,
+  updateClickUpTimeEntry,
 } from "@/lib/clickup/client";
 import type { ClickUpTimeEntriesPullResult } from "@/features/clickup/types";
 
@@ -100,6 +102,135 @@ export const clickupTimeEntryService = {
       }
     } catch (err) {
       console.error("[clickup-push] unexpected error:", err);
+    }
+  },
+
+  async pushEntryUpdate(
+    localEntryId: string,
+  ): Promise<{ pushed: boolean; reason?: string }> {
+    try {
+      const entry = await prisma.timeEntry.findUnique({
+        where: { id: localEntryId },
+        select: {
+          id: true,
+          userId: true,
+          startTime: true,
+          endTime: true,
+          durationSeconds: true,
+          note: true,
+          clickupTimeEntryId: true,
+          clickupTeamId: true,
+          task: { select: { clickupTaskId: true } },
+        },
+      });
+      if (!entry) return { pushed: false, reason: "entry_not_found" };
+      if (!entry.clickupTimeEntryId) return { pushed: false, reason: "not_synced" };
+      if (!entry.clickupTeamId) return { pushed: false, reason: "no_team" };
+      if (entry.endTime === null) return { pushed: false, reason: "running" };
+
+      const conn = await prisma.clickUpConnection.findUnique({
+        where: { userId: entry.userId },
+        select: {
+          accessTokenEncrypted: true,
+          encryptionIv: true,
+          isActive: true,
+        },
+      });
+      if (!conn || !conn.isActive) {
+        await prisma.timeEntry.update({
+          where: { id: entry.id },
+          data: {
+            syncStatus: "FAILED",
+            syncLastAttemptAt: new Date(),
+            syncLastError: "ClickUp not connected",
+            syncRetryCount: { increment: 1 },
+          },
+        });
+        return { pushed: false, reason: "no_connection" };
+      }
+
+      const token = decrypt(conn.accessTokenEncrypted, conn.encryptionIv);
+      const durationMs = (entry.durationSeconds ?? 0) * 1000;
+
+      await updateClickUpTimeEntry(
+        token,
+        entry.clickupTeamId,
+        entry.clickupTimeEntryId,
+        {
+          start: entry.startTime.getTime(),
+          duration: durationMs,
+          description: entry.note ?? "",
+          tid: entry.task.clickupTaskId ?? undefined,
+        },
+      );
+
+      await prisma.timeEntry.update({
+        where: { id: entry.id },
+        data: {
+          syncStatus: "SYNCED",
+          syncLastAttemptAt: new Date(),
+          syncLastError: null,
+        },
+      });
+
+      return { pushed: true };
+    } catch (err) {
+      const msg = (err as Error).message?.slice(0, 200) ?? "push failed";
+      console.error(`[clickup-push] entry update ${localEntryId} failed: ${msg}`);
+      await prisma.timeEntry
+        .update({
+          where: { id: localEntryId },
+          data: {
+            syncStatus: "FAILED",
+            syncLastAttemptAt: new Date(),
+            syncLastError: msg,
+            syncRetryCount: { increment: 1 },
+          },
+        })
+        .catch(() => {});
+      return { pushed: false, reason: msg };
+    }
+  },
+
+  async pushEntryDelete(meta: {
+    clickupTimeEntryId: string;
+    clickupTeamId: string;
+    ownerUserId: string;
+  }): Promise<{ pushed: boolean; reason?: string }> {
+    try {
+      let conn = await prisma.clickUpConnection.findUnique({
+        where: { userId: meta.ownerUserId },
+        select: {
+          accessTokenEncrypted: true,
+          encryptionIv: true,
+          isActive: true,
+        },
+      });
+      if (!conn || !conn.isActive) {
+        conn = await prisma.clickUpConnection.findFirst({
+          where: { isActive: true },
+          select: {
+            accessTokenEncrypted: true,
+            encryptionIv: true,
+            isActive: true,
+          },
+        });
+      }
+      if (!conn) return { pushed: false, reason: "no_connection" };
+
+      const token = decrypt(conn.accessTokenEncrypted, conn.encryptionIv);
+      await deleteClickUpTimeEntry(
+        token,
+        meta.clickupTeamId,
+        meta.clickupTimeEntryId,
+      );
+      return { pushed: true };
+    } catch (err) {
+      const msg = (err as Error).message?.slice(0, 200) ?? "delete failed";
+      console.error(
+        `[clickup-push] entry delete ${meta.clickupTimeEntryId} failed: ${msg}`,
+      );
+      return { pushed: false, reason: msg };
     }
   },
 
