@@ -1,6 +1,17 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { ApiErrors } from "@/lib/api-error";
 import { decrypt } from "@/lib/encryption";
-import { createClickUpTimeEntry } from "@/lib/clickup/client";
+import {
+  createClickUpTimeEntry,
+  fetchClickUpTeams,
+  fetchClickUpTimeEntries,
+} from "@/lib/clickup/client";
+import type { ClickUpTimeEntriesPullResult } from "@/features/clickup/types";
+import type { SessionUser } from "@/types";
+
+const DEFAULT_PULL_DAYS = 7;
+const MAX_PULL_DAYS = 90;
 
 export const clickupTimeEntryService = {
   async pushOnStop(timeEntryId: string): Promise<void> {
@@ -91,5 +102,170 @@ export const clickupTimeEntryService = {
     } catch (err) {
       console.error("[clickup-push] unexpected error:", err);
     }
+  },
+
+  async pullFromClickUp(
+    actor: SessionUser,
+    opts: { days?: number } = {},
+  ): Promise<ClickUpTimeEntriesPullResult> {
+    const days = Math.min(
+      Math.max(opts.days ?? DEFAULT_PULL_DAYS, 1),
+      MAX_PULL_DAYS,
+    );
+
+    const conn = await prisma.clickUpConnection.findUnique({
+      where: { userId: actor.userId },
+      select: {
+        accessTokenEncrypted: true,
+        encryptionIv: true,
+        isActive: true,
+      },
+    });
+    if (!conn || !conn.isActive) {
+      throw ApiErrors.conflict(
+        "CLICKUP_NOT_CONNECTED",
+        "Connect ClickUp first.",
+      );
+    }
+
+    const token = decrypt(conn.accessTokenEncrypted, conn.encryptionIv);
+    const teams = await fetchClickUpTeams(token);
+
+    const endMs = Date.now();
+    const startMs = endMs - days * 24 * 60 * 60 * 1000;
+
+    let entriesScanned = 0;
+    let imported = 0;
+    let skippedAlreadyLocal = 0;
+    let skippedNoTask = 0;
+    let skippedNoUser = 0;
+    let skippedNoDuration = 0;
+    const errors: string[] = [];
+
+    for (const team of teams) {
+      let remoteEntries: Awaited<ReturnType<typeof fetchClickUpTimeEntries>>;
+      try {
+        remoteEntries = await fetchClickUpTimeEntries(token, team.id, {
+          startMs,
+          endMs,
+        });
+      } catch (err) {
+        errors.push(
+          `team ${team.id}: ${(err as Error).message?.slice(0, 200) ?? "fetch failed"}`,
+        );
+        continue;
+      }
+
+      entriesScanned += remoteEntries.length;
+      if (remoteEntries.length === 0) continue;
+
+      const remoteIds = remoteEntries.map((e) => e.id);
+      const existing = await prisma.timeEntry.findMany({
+        where: { clickupTimeEntryId: { in: remoteIds } },
+        select: { clickupTimeEntryId: true },
+      });
+      const existingIds = new Set(
+        existing
+          .map((e) => e.clickupTimeEntryId)
+          .filter((id): id is string => id !== null),
+      );
+
+      const remoteTaskIds = Array.from(
+        new Set(remoteEntries.map((e) => e.taskId).filter((id): id is string => !!id)),
+      );
+      const remoteUserIds = Array.from(
+        new Set(remoteEntries.map((e) => e.userId)),
+      );
+
+      const [localTasks, localUsers] = await Promise.all([
+        remoteTaskIds.length > 0
+          ? prisma.task.findMany({
+              where: { clickupTaskId: { in: remoteTaskIds } },
+              select: { id: true, clickupTaskId: true },
+            })
+          : Promise.resolve([] as { id: string; clickupTaskId: string | null }[]),
+        prisma.user.findMany({
+          where: { clickupUserId: { in: remoteUserIds } },
+          select: { id: true, clickupUserId: true },
+        }),
+      ]);
+
+      const taskByClickup = new Map<string, string>();
+      for (const t of localTasks) {
+        if (t.clickupTaskId) taskByClickup.set(t.clickupTaskId, t.id);
+      }
+      const userByClickup = new Map<number, string>();
+      for (const u of localUsers) {
+        if (u.clickupUserId !== null) userByClickup.set(u.clickupUserId, u.id);
+      }
+
+      for (const e of remoteEntries) {
+        if (existingIds.has(e.id)) {
+          skippedAlreadyLocal++;
+          continue;
+        }
+        if (e.duration <= 0) {
+          skippedNoDuration++;
+          continue;
+        }
+        if (!e.taskId || !taskByClickup.has(e.taskId)) {
+          skippedNoTask++;
+          continue;
+        }
+        if (!userByClickup.has(e.userId)) {
+          skippedNoUser++;
+          continue;
+        }
+
+        const localTaskId = taskByClickup.get(e.taskId)!;
+        const localUserId = userByClickup.get(e.userId)!;
+        const startTime = new Date(e.start);
+        const endTime = new Date(e.start + e.duration);
+        const durationSeconds = Math.round(e.duration / 1000);
+
+        try {
+          await prisma.timeEntry.create({
+            data: {
+              userId: localUserId,
+              taskId: localTaskId,
+              startTime,
+              endTime,
+              durationSeconds,
+              note: e.description,
+              isManual: false,
+              source: "CLICKUP",
+              clickupTimeEntryId: e.id,
+              clickupTeamId: team.id,
+              syncStatus: "SYNCED",
+              syncLastAttemptAt: new Date(),
+            },
+          });
+          imported++;
+        } catch (err) {
+          if (
+            err instanceof Prisma.PrismaClientKnownRequestError &&
+            err.code === "P2002"
+          ) {
+            skippedAlreadyLocal++;
+            continue;
+          }
+          errors.push(
+            `entry ${e.id}: ${(err as Error).message?.slice(0, 200) ?? "create failed"}`,
+          );
+        }
+      }
+    }
+
+    return {
+      teamsScanned: teams.length,
+      entriesScanned,
+      imported,
+      skippedAlreadyLocal,
+      skippedNoTask,
+      skippedNoUser,
+      skippedNoDuration,
+      windowDays: days,
+      errors,
+    };
   },
 };

@@ -55,6 +55,18 @@ export type ClickUpMembersSyncResult = {
   conflicts: Array<{ email: string; clickupUserId: number; reason: string }>;
 };
 
+export type ClickUpTimeEntriesPullResult = {
+  teamsScanned: number;
+  entriesScanned: number;
+  imported: number;
+  skippedAlreadyLocal: number;
+  skippedNoTask: number;
+  skippedNoUser: number;
+  skippedNoDuration: number;
+  windowDays: number;
+  errors: string[];
+};
+
 export type ClickUpWebhookProcessResult =
   | { ok: false; skipped: string }
   | {
