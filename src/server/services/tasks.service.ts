@@ -20,6 +20,9 @@ const taskSelect = {
   updatedAt: true,
   createdBy: { select: { id: true, name: true, email: true } },
   assignedTo: { select: { id: true, name: true, email: true } },
+  clickupTaskId: true,
+  clickupUrl: true,
+  clickupLastSyncedAt: true,
 } as const;
 
 function requireAdmin(user: SessionUser): void {

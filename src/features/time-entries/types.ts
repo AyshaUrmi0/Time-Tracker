@@ -2,6 +2,8 @@ import type { TaskStatus } from "@/features/tasks/types";
 
 export type EntrySource = "LOCAL" | "CLICKUP" | "CLICKUP_INITIAL_SYNC";
 
+export type SyncStatus = "NOT_SYNCED" | "SYNCED" | "FAILED";
+
 export type TimeEntryUser = { id: string; name: string; email: string };
 
 export type TimeEntryTask = {
@@ -9,6 +11,7 @@ export type TimeEntryTask = {
   title: string;
   status: TaskStatus;
   isArchived: boolean;
+  clickupTaskId: string | null;
 };
 
 export type TimeEntry = {
@@ -25,6 +28,9 @@ export type TimeEntry = {
   updatedAt: string;
   user: TimeEntryUser;
   task: TimeEntryTask;
+  syncStatus: SyncStatus;
+  clickupTimeEntryId: string | null;
+  syncLastError: string | null;
 };
 
 export type TimeEntryListFilters = {
