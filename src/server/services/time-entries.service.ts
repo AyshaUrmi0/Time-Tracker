@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { ApiErrors } from "@/lib/api-error";
 import { LIMITS } from "@/lib/validation";
+import { clickupTimeEntryService } from "@/server/services/clickup-time-entry.service";
 import type {
   CreateTimeEntryInput,
   UpdateTimeEntryInput,
@@ -224,7 +225,7 @@ export const timeEntriesService = {
       }
     }
 
-    return prisma.timeEntry.update({
+    const updated = await prisma.timeEntry.update({
       where: { id },
       data: {
         ...(input.taskId !== undefined ? { taskId: nextTaskId } : {}),
@@ -237,12 +238,22 @@ export const timeEntriesService = {
       },
       select: entrySelect,
     });
+
+    await clickupTimeEntryService.pushEntryUpdate(id);
+
+    return updated;
   },
 
   async remove(user: SessionUser, id: string) {
     const existing = await prisma.timeEntry.findUnique({
       where: { id },
-      select: { id: true, userId: true, endTime: true },
+      select: {
+        id: true,
+        userId: true,
+        endTime: true,
+        clickupTimeEntryId: true,
+        clickupTeamId: true,
+      },
     });
     if (!existing) throw ApiErrors.notFound("Time entry not found");
     if (!canMutateEntry(user, existing.userId)) throw ApiErrors.forbidden();
@@ -254,6 +265,15 @@ export const timeEntriesService = {
     }
 
     await prisma.timeEntry.delete({ where: { id } });
+
+    if (existing.clickupTimeEntryId && existing.clickupTeamId) {
+      await clickupTimeEntryService.pushEntryDelete({
+        clickupTimeEntryId: existing.clickupTimeEntryId,
+        clickupTeamId: existing.clickupTeamId,
+        ownerUserId: existing.userId,
+      });
+    }
+
     return { id };
   },
 };
