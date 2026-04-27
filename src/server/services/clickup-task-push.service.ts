@@ -65,6 +65,37 @@ async function findActiveConnection(preferredUserId: string) {
 }
 
 export const clickupTaskPushService = {
+  async pushTaskArchive(localTaskId: string): Promise<ClickUpTaskPushResult> {
+    try {
+      const task = await prisma.task.findUnique({
+        where: { id: localTaskId },
+        select: {
+          clickupTaskId: true,
+          createdById: true,
+        },
+      });
+      if (!task) return { pushed: false, reason: "task_not_found" };
+      if (!task.clickupTaskId) return { pushed: false, reason: "not_a_clickup_task" };
+
+      const conn = await findActiveConnection(task.createdById);
+      if (!conn) return { pushed: false, reason: "no_active_connection" };
+
+      const token = decrypt(conn.accessTokenEncrypted, conn.encryptionIv);
+      await updateClickUpTask(token, task.clickupTaskId, { archived: true });
+
+      await prisma.task.update({
+        where: { id: localTaskId },
+        data: { clickupLastSyncedAt: new Date() },
+      });
+
+      return { pushed: true };
+    } catch (err) {
+      const msg = (err as Error).message?.slice(0, 200) ?? "push_failed";
+      console.error(`[clickup-push] archive ${localTaskId} failed: ${msg}`);
+      return { pushed: false, reason: msg };
+    }
+  },
+
   async pushTaskUpdate(
     localTaskId: string,
     changedFields: {

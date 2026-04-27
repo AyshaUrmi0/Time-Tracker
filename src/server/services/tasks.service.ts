@@ -127,10 +127,14 @@ export const tasksService = {
     if (!existing) throw ApiErrors.notFound("Task not found");
     if (existing.isArchived) return existing;
 
-    return prisma.task.update({
+    const archived = await prisma.task.update({
       where: { id },
       data: { isArchived: true },
       select: taskSelect,
     });
+
+    await clickupTaskPushService.pushTaskArchive(id);
+
+    return archived;
   },
 };
