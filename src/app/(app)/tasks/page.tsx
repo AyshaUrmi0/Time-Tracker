@@ -102,22 +102,24 @@ export default function TasksPage() {
               Create, assign, and archive work across your team.
             </p>
           </div>
-          <Button onClick={() => setFormState({ open: true, mode: "create" })}>
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden
-            >
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-            New task
-          </Button>
+          {isAdmin && (
+            <Button onClick={() => setFormState({ open: true, mode: "create" })}>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              New task
+            </Button>
+          )}
         </div>
 
         {isAdmin && (
@@ -187,7 +189,6 @@ export default function TasksPage() {
             <>
               <TasksTable
                 tasks={pagedTasks}
-                currentUserId={currentUserId}
                 isAdmin={isAdmin}
                 onEdit={(task) => setFormState({ open: true, mode: "edit", task })}
                 onArchive={handleArchive}
@@ -210,18 +211,7 @@ export default function TasksPage() {
         onClose={() => setFormState({ open: false })}
         mode={formState.open ? formState.mode : "create"}
         task={formState.open && formState.mode === "edit" ? formState.task : undefined}
-        canEdit={
-          formState.open && formState.mode === "edit"
-            ? isAdmin ||
-              formState.task.createdById === currentUserId ||
-              formState.task.assignedToId === currentUserId
-            : true
-        }
-        canOwn={
-          formState.open && formState.mode === "edit"
-            ? isAdmin || formState.task.createdById === currentUserId
-            : true
-        }
+        isAdmin={isAdmin}
       />
     </div>
   );

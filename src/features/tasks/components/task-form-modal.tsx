@@ -26,8 +26,7 @@ type Props = {
   onClose: () => void;
   mode: "create" | "edit";
   task?: Task;
-  canEdit?: boolean;
-  canOwn?: boolean;
+  isAdmin: boolean;
 };
 
 type FormValues = {
@@ -42,8 +41,7 @@ export function TaskFormModal({
   onClose,
   mode,
   task,
-  canEdit = true,
-  canOwn = true,
+  isAdmin,
 }: Props) {
   const usersQuery = useSelectableUsers();
   const createMutation = useCreateTask();
@@ -80,20 +78,12 @@ export function TaskFormModal({
   }, [open, mode, task, reset]);
 
   async function onSubmit(values: FormValues) {
-    const isAssigneeOnlyEdit = mode === "edit" && canEdit && !canOwn;
-    const payload: CreateTaskInput = isAssigneeOnlyEdit
-      ? {
-          title: task?.title ?? values.title,
-          description: values.description.trim() || undefined,
-          status: values.status,
-          assignedToId: task?.assignedToId ?? null,
-        }
-      : {
-          title: values.title,
-          description: values.description.trim() || undefined,
-          status: values.status,
-          assignedToId: values.assignedToId || null,
-        };
+    const payload: CreateTaskInput = {
+      title: values.title,
+      description: values.description.trim() || undefined,
+      status: values.status,
+      assignedToId: values.assignedToId || null,
+    };
 
     try {
       if (mode === "create") {
@@ -116,8 +106,7 @@ export function TaskFormModal({
   }
 
   const busy = isSubmitting || createMutation.isPending || updateMutation.isPending;
-  const readOnly = mode === "edit" && !canEdit;
-  const ownerLocked = mode === "edit" && canEdit && !canOwn;
+  const readOnly = !isAdmin;
 
   return (
     <Dialog
@@ -125,11 +114,7 @@ export function TaskFormModal({
       onClose={() => (!busy ? onClose() : null)}
       title={mode === "create" ? "New task" : readOnly ? "Task details" : "Edit task"}
       description={
-        readOnly
-          ? "Only the creator or an admin can edit this task."
-          : ownerLocked
-            ? "You're the assignee. Title and assignee can only be changed by the creator or an admin."
-            : undefined
+        readOnly ? "Only an admin can edit tasks." : undefined
       }
       size="md"
       footer={
@@ -157,8 +142,8 @@ export function TaskFormModal({
         <FormField id="title" label="Title" error={errors.title?.message}>
           <Input
             id="title"
-            autoFocus={!readOnly && !ownerLocked}
-            disabled={readOnly || ownerLocked}
+            autoFocus={!readOnly}
+            disabled={readOnly}
             placeholder="What needs to be done?"
             error={!!errors.title}
             {...register("title")}
@@ -200,7 +185,7 @@ export function TaskFormModal({
           >
             <select
               id="assignedToId"
-              disabled={readOnly || ownerLocked || usersQuery.isLoading}
+              disabled={readOnly || usersQuery.isLoading}
               className="h-10 w-full appearance-none rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 disabled:opacity-60"
               {...register("assignedToId")}
             >
