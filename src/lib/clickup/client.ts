@@ -375,6 +375,69 @@ export async function deleteClickUpWebhookOnClickUp(
   });
 }
 
+export type ClickUpTimeEntry = {
+  id: string;
+  taskId: string | null;
+  teamId: string;
+  userId: number;
+  start: number;
+  end: number | null;
+  duration: number;
+  description: string | null;
+  billable: boolean;
+};
+
+type ClickUpTimeEntriesResponse = {
+  data?: Array<{
+    id: string;
+    task?: { id?: string | null } | null;
+    wid?: string | null;
+    user?: { id?: number | null } | null;
+    start?: string | number | null;
+    end?: string | number | null;
+    duration?: string | number | null;
+    description?: string | null;
+    billable?: boolean | null;
+  }>;
+};
+
+function parseMs(value: string | number | null | undefined): number | null {
+  if (value === null || value === undefined) return null;
+  const n = typeof value === "number" ? value : Number.parseInt(value, 10);
+  return Number.isFinite(n) ? n : null;
+}
+
+export async function fetchClickUpTimeEntries(
+  token: string,
+  teamId: string,
+  opts: { startMs: number; endMs: number },
+): Promise<ClickUpTimeEntry[]> {
+  const json = await clickupFetch<ClickUpTimeEntriesResponse>(
+    `/team/${teamId}/time_entries`,
+    token,
+    { query: { start_date: opts.startMs, end_date: opts.endMs } },
+  );
+  const entries: ClickUpTimeEntry[] = [];
+  for (const e of json.data ?? []) {
+    const start = parseMs(e.start);
+    const duration = parseMs(e.duration);
+    if (start === null || duration === null) continue;
+    if (typeof e.user?.id !== "number") continue;
+    entries.push({
+      id: e.id,
+      taskId: e.task?.id ?? null,
+      teamId: e.wid ?? teamId,
+      userId: e.user.id,
+      start,
+      end: parseMs(e.end),
+      duration,
+      description: e.description ?? null,
+      billable: e.billable ?? false,
+    });
+  }
+  return entries;
+}
+
 export async function createClickUpTimeEntry(
   token: string,
   teamId: string,
