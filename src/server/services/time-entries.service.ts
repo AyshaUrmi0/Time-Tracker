@@ -158,6 +158,7 @@ export const timeEntriesService = {
   },
 
   async create(user: SessionUser, input: CreateTimeEntryInput) {
+    if (user.role !== "ADMIN") throw ApiErrors.forbidden();
     const startTime = new Date(input.startTime);
     const endTime = new Date(input.endTime);
     assertManualWindow(startTime, endTime);
