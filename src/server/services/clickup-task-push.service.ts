@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { decrypt } from "@/lib/encryption";
 import {
   fetchClickUpListStatuses,
+  fetchClickUpTaskDetail,
   updateClickUpTask,
   type ClickUpListStatus,
   type UpdateClickUpTaskInput,
@@ -66,10 +67,20 @@ async function findActiveConnection(preferredUserId: string) {
 export const clickupTaskPushService = {
   async pushTaskUpdate(
     localTaskId: string,
-    changedFields: { title?: boolean; description?: boolean; status?: boolean },
+    changedFields: {
+      title?: boolean;
+      description?: boolean;
+      status?: boolean;
+      assignee?: boolean;
+    },
   ): Promise<ClickUpTaskPushResult> {
     try {
-      if (!changedFields.title && !changedFields.description && !changedFields.status) {
+      if (
+        !changedFields.title &&
+        !changedFields.description &&
+        !changedFields.status &&
+        !changedFields.assignee
+      ) {
         return { pushed: false, reason: "no_pushable_fields_changed" };
       }
 
@@ -79,10 +90,12 @@ export const clickupTaskPushService = {
           title: true,
           description: true,
           status: true,
+          assignedToId: true,
           clickupTaskId: true,
           clickupListId: true,
           clickupStatus: true,
           createdById: true,
+          assignedTo: { select: { clickupUserId: true } },
         },
       });
       if (!task) return { pushed: false, reason: "task_not_found" };
@@ -107,10 +120,47 @@ export const clickupTaskPushService = {
         if (statusName) update.status = statusName;
       }
 
+      if (changedFields.assignee) {
+        const newClickupUserId = task.assignedTo?.clickupUserId ?? null;
+
+        const detail = await fetchClickUpTaskDetail(token, task.clickupTaskId);
+        const remoteAssigneeIds = (detail?.assignees ?? []).map((a) => a.id);
+
+        const localUsers = await prisma.user.findMany({
+          where: { clickupUserId: { not: null } },
+          select: { clickupUserId: true },
+        });
+        const localPool = new Set(
+          localUsers
+            .map((u) => u.clickupUserId)
+            .filter((id): id is number => id !== null),
+        );
+
+        const add: number[] = [];
+        const rem: number[] = [];
+
+        if (
+          newClickupUserId !== null &&
+          !remoteAssigneeIds.includes(newClickupUserId)
+        ) {
+          add.push(newClickupUserId);
+        }
+        for (const remoteId of remoteAssigneeIds) {
+          if (localPool.has(remoteId) && remoteId !== newClickupUserId) {
+            rem.push(remoteId);
+          }
+        }
+
+        if (add.length > 0 || rem.length > 0) {
+          update.assignees = { add, rem };
+        }
+      }
+
       if (
         update.name === undefined &&
         update.description === undefined &&
-        update.status === undefined
+        update.status === undefined &&
+        update.assignees === undefined
       ) {
         return { pushed: false, reason: "nothing_to_push" };
       }
