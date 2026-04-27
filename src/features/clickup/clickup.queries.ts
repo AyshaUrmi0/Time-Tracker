@@ -93,19 +93,14 @@ export function usePullClickUpTimeEntries() {
   return useMutation({
     mutationFn: (days?: number) => clickupService.pullTimeEntries(days),
     onSuccess: (result) => {
-      const skipped =
-        result.skippedAlreadyLocal +
-        result.skippedNoTask +
-        result.skippedNoUser +
-        result.skippedNoDuration;
-      let summary: string;
-      if (result.imported === 0 && skipped === 0) {
-        summary = `No time entries in the last ${result.windowDays} days.`;
-      } else if (result.imported === 0) {
-        summary = `Nothing new (${skipped} skipped).`;
-      } else {
-        summary = `Imported ${result.imported} time entr${result.imported === 1 ? "y" : "ies"}.`;
-      }
+      const parts: string[] = [];
+      if (result.imported > 0) parts.push(`${result.imported} imported`);
+      if (result.updated > 0) parts.push(`${result.updated} updated`);
+      if (result.deletedLocally > 0) parts.push(`${result.deletedLocally} deleted`);
+      const summary =
+        parts.length > 0
+          ? parts.join(", ")
+          : `No changes in the last ${result.windowDays} days.`;
       if (result.errors.length > 0) {
         toast.info(`${summary} (${result.errors.length} error${result.errors.length === 1 ? "" : "s"})`);
       } else {

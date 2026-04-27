@@ -41,6 +41,8 @@ export async function GET(req: Request) {
     detail?: unknown;
   }> = [];
   let totalImported = 0;
+  let totalUpdated = 0;
+  let totalDeletedLocally = 0;
   let totalSkipped = 0;
 
   for (const conn of connections) {
@@ -50,6 +52,8 @@ export async function GET(req: Request) {
         { days: Number.isFinite(days) ? days : DEFAULT_DAYS },
       );
       totalImported += result.imported;
+      totalUpdated += result.updated;
+      totalDeletedLocally += result.deletedLocally;
       totalSkipped +=
         result.skippedAlreadyLocal +
         result.skippedNoTask +
@@ -75,6 +79,8 @@ export async function GET(req: Request) {
     result: {
       connectionsProcessed: connections.length,
       totalImported,
+      totalUpdated,
+      totalDeletedLocally,
       totalSkipped,
       perConnection,
     },
