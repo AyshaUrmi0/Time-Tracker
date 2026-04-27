@@ -23,6 +23,14 @@ const taskSelect = {
   clickupTaskId: true,
   clickupUrl: true,
   clickupLastSyncedAt: true,
+  clickupStatus: true,
+  clickupStatusColor: true,
+  clickupPriority: true,
+  clickupDueDate: true,
+  clickupTags: true,
+  clickupSpaceName: true,
+  clickupFolderName: true,
+  clickupListName: true,
 } as const;
 
 function requireAdmin(user: SessionUser): void {

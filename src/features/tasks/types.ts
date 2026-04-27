@@ -17,6 +17,14 @@ export type Task = {
   clickupTaskId: string | null;
   clickupUrl: string | null;
   clickupLastSyncedAt: string | null;
+  clickupStatus: string | null;
+  clickupStatusColor: string | null;
+  clickupPriority: number | null;
+  clickupDueDate: string | null;
+  clickupTags: string[];
+  clickupSpaceName: string | null;
+  clickupFolderName: string | null;
+  clickupListName: string | null;
 };
 
 export type TaskListFilters = {

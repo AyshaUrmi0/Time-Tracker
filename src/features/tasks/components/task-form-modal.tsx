@@ -15,6 +15,7 @@ import {
   type CreateTaskInput,
 } from "../tasks.schema";
 import { useCreateTask, useUpdateTask } from "../tasks.queries";
+import { PRIORITY_LABELS, describeDueDate } from "../clickup-task-fields";
 import type { Task } from "../types";
 
 type FieldErrors = Partial<
@@ -198,7 +199,115 @@ export function TaskFormModal({
             </select>
           </FormField>
         </div>
+
+        {mode === "edit" && task?.clickupTaskId && <ClickUpDetailsPanel task={task} />}
       </form>
     </Dialog>
   );
+}
+
+function ClickUpDetailsPanel({ task }: { task: Task }) {
+  const priority =
+    task.clickupPriority !== null ? PRIORITY_LABELS[task.clickupPriority] ?? null : null;
+  const due = task.clickupDueDate ? describeDueDate(task.clickupDueDate) : null;
+  const location = [task.clickupSpaceName, task.clickupFolderName, task.clickupListName]
+    .filter(Boolean)
+    .join(" › ");
+
+  return (
+    <section className="mt-1 rounded-lg border border-[var(--border)] bg-[var(--surface-hover)] px-4 py-3">
+      <h3 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+        ClickUp details
+      </h3>
+      <dl className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
+        {task.clickupStatus && (
+          <Row label="ClickUp status">
+            <span className="inline-flex items-center gap-1.5 text-[15px]">
+              {task.clickupStatusColor && (
+                <span
+                  aria-hidden
+                  className="h-2 w-2 rounded-full"
+                  style={{ background: task.clickupStatusColor }}
+                />
+              )}
+              <span className="font-medium text-[var(--text-primary)]">
+                {task.clickupStatus}
+              </span>
+            </span>
+          </Row>
+        )}
+        <Row label="Priority">
+          {priority ? (
+            <span className="inline-flex items-center gap-1.5 text-[15px] font-medium text-[var(--text-primary)]">
+              <span
+                aria-hidden
+                className="inline-block h-2 w-2 rounded-full"
+                style={{ background: priority.color }}
+              />
+              {priority.label}
+            </span>
+          ) : (
+            <Empty />
+          )}
+        </Row>
+        <Row label="Due date">
+          {due ? (
+            <span
+              className={
+                due.overdue
+                  ? "text-[15px] font-medium text-[var(--danger)]"
+                  : "text-[15px] font-medium text-[var(--text-primary)]"
+              }
+            >
+              {due.label}
+            </span>
+          ) : (
+            <Empty />
+          )}
+        </Row>
+        <Row label="Tags">
+          {task.clickupTags.length > 0 ? (
+            <span className="flex flex-wrap gap-1">
+              {task.clickupTags.map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center rounded-md border border-[var(--border)] bg-[var(--surface)] px-1.5 py-0.5 text-[12px] font-medium text-[var(--text-secondary)]"
+                >
+                  {tag}
+                </span>
+              ))}
+            </span>
+          ) : (
+            <Empty />
+          )}
+        </Row>
+        {location && (
+          <Row label="Location" full>
+            <span className="text-[15px] text-[var(--text-secondary)]">{location}</span>
+          </Row>
+        )}
+      </dl>
+    </section>
+  );
+}
+
+function Row({
+  label,
+  children,
+  full,
+}: {
+  label: string;
+  children: React.ReactNode;
+  full?: boolean;
+}) {
+  return (
+    <div className={full ? "sm:col-span-2" : undefined}>
+      <dt className="text-[12px] text-[var(--text-muted)]">{label}</dt>
+      <dd className="mt-0.5">{children}</dd>
+    </div>
+  );
+}
+
+function Empty() {
+  return <span className="text-[15px] text-[var(--text-muted)]">Empty</span>;
 }
