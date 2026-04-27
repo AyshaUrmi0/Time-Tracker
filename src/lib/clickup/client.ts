@@ -438,6 +438,45 @@ export async function fetchClickUpTimeEntries(
   return entries;
 }
 
+export type UpdateClickUpTimeEntryInput = {
+  start?: number;
+  duration?: number;
+  description?: string;
+  tid?: string;
+  billable?: boolean;
+};
+
+export async function updateClickUpTimeEntry(
+  token: string,
+  teamId: string,
+  entryId: string,
+  input: UpdateClickUpTimeEntryInput,
+): Promise<void> {
+  const body: Record<string, unknown> = {};
+  if (input.start !== undefined) body.start = input.start;
+  if (input.duration !== undefined) body.duration = input.duration;
+  if (input.description !== undefined) body.description = input.description;
+  if (input.tid !== undefined) body.tid = input.tid;
+  if (input.billable !== undefined) body.billable = input.billable;
+  await clickupFetch<unknown>(
+    `/team/${teamId}/time_entries/${entryId}`,
+    token,
+    { method: "PUT", body },
+  );
+}
+
+export async function deleteClickUpTimeEntry(
+  token: string,
+  teamId: string,
+  entryId: string,
+): Promise<void> {
+  await clickupFetch<unknown>(
+    `/team/${teamId}/time_entries/${entryId}`,
+    token,
+    { method: "DELETE" },
+  );
+}
+
 export async function createClickUpTimeEntry(
   token: string,
   teamId: string,
