@@ -14,6 +14,8 @@ import type { ClickUpTimeEntriesPullResult } from "@/features/clickup/types";
 
 const DEFAULT_PULL_DAYS = 7;
 const MAX_PULL_DAYS = 90;
+const PULL_CHUNK_DAYS = 7;
+const PULL_CHUNK_MS = PULL_CHUNK_DAYS * 24 * 60 * 60 * 1000;
 
 export const clickupTimeEntryService = {
   async pushOnStop(timeEntryId: string): Promise<void> {
@@ -345,19 +347,38 @@ export const clickupTimeEntryService = {
     const windowEnd = new Date(endMs);
 
     for (const team of teams) {
-      let remoteEntries: Awaited<ReturnType<typeof fetchClickUpTimeEntries>>;
-      try {
-        remoteEntries = await fetchClickUpTimeEntries(token, team.id, {
-          startMs,
-          endMs,
-        });
-      } catch (err) {
-        errors.push(
-          `team ${team.id}: ${(err as Error).message?.slice(0, 200) ?? "fetch failed"}`,
-        );
-        await handleClickUpInvalidToken(err, connectionUserId);
-        continue;
+      const remoteEntries: Awaited<
+        ReturnType<typeof fetchClickUpTimeEntries>
+      > = [];
+      const seenRemoteIds = new Set<string>();
+      let chunkStart = startMs;
+      let teamFetchFailed = false;
+
+      while (chunkStart < endMs) {
+        const chunkEnd = Math.min(chunkStart + PULL_CHUNK_MS, endMs);
+        try {
+          const part = await fetchClickUpTimeEntries(token, team.id, {
+            startMs: chunkStart,
+            endMs: chunkEnd,
+          });
+          for (const e of part) {
+            if (!seenRemoteIds.has(e.id)) {
+              seenRemoteIds.add(e.id);
+              remoteEntries.push(e);
+            }
+          }
+        } catch (err) {
+          errors.push(
+            `team ${team.id} window ${new Date(chunkStart).toISOString()}..${new Date(chunkEnd).toISOString()}: ${(err as Error).message?.slice(0, 200) ?? "fetch failed"}`,
+          );
+          await handleClickUpInvalidToken(err, connectionUserId);
+          teamFetchFailed = true;
+          break;
+        }
+        chunkStart = chunkEnd;
       }
+
+      if (teamFetchFailed) continue;
 
       entriesScanned += remoteEntries.length;
 
