@@ -243,12 +243,14 @@ function RunningPill({
         type="button"
         onClick={onStop}
         disabled={loading}
+        title="Stop timer"
         aria-label="Stop timer"
-        className="grid h-7 w-7 place-items-center rounded-md text-[var(--danger)] transition-colors duration-150 hover:bg-[var(--danger-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--danger)] disabled:opacity-50"
+        className="group inline-flex h-7 items-center gap-1.5 rounded-md bg-[var(--danger-soft)] px-2.5 text-[13px] font-semibold text-[var(--danger)] transition-colors duration-150 hover:bg-[var(--danger)] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--danger)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)] disabled:cursor-not-allowed disabled:opacity-50"
       >
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
           <rect x="6" y="6" width="12" height="12" rx="1" />
         </svg>
+        Stop
       </button>
     </div>
   );
