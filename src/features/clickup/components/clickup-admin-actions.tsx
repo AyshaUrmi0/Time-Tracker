@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useModal } from "@/contexts/ModalContext";
 import {
+  useClickUpWebhookHealth,
   usePullClickUpTimeEntries,
   useRegisterClickUpWebhooks,
   useSyncClickUpMembers,
@@ -17,6 +18,7 @@ export function ClickUpAdminActions() {
   const pullTimeEntries = usePullClickUpTimeEntries();
   const registerWebhooks = useRegisterClickUpWebhooks();
   const unregisterWebhooks = useUnregisterClickUpWebhooks();
+  const webhookHealth = useClickUpWebhookHealth(true);
   const modal = useModal();
 
   const anyPending =
@@ -94,28 +96,77 @@ export function ClickUpAdminActions() {
           title="Webhooks"
           description="Register one webhook per ClickUp team so task changes flow back here in real time. Re-running is safe (idempotent per team)."
         >
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              onClick={() => registerWebhooks.mutate()}
-              loading={registerWebhooks.isPending}
-              disabled={anyPending && !registerWebhooks.isPending}
-            >
-              Register
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleUnregister}
-              loading={unregisterWebhooks.isPending}
-              disabled={anyPending && !unregisterWebhooks.isPending}
-            >
-              Unregister
-            </Button>
+          <div className="flex flex-col items-end gap-2">
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                onClick={() => registerWebhooks.mutate()}
+                loading={registerWebhooks.isPending}
+                disabled={anyPending && !registerWebhooks.isPending}
+              >
+                Register
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleUnregister}
+                loading={unregisterWebhooks.isPending}
+                disabled={anyPending && !unregisterWebhooks.isPending}
+              >
+                Unregister
+              </Button>
+            </div>
+            <WebhookHealthSummary
+              webhooks={webhookHealth.data?.webhooks ?? []}
+            />
           </div>
         </ActionRow>
       </div>
     </div>
+  );
+}
+
+function WebhookHealthSummary({
+  webhooks,
+}: {
+  webhooks: Array<{
+    webhookId: string;
+    teamId: string;
+    isHealthy: boolean;
+    failureCount: number;
+    lastFailedAt: string | null;
+  }>;
+}) {
+  if (webhooks.length === 0) {
+    return (
+      <span className="text-[11px] text-[var(--text-muted)]">
+        No webhooks registered.
+      </span>
+    );
+  }
+  const unhealthy = webhooks.filter((w) => !w.isHealthy);
+  if (unhealthy.length === 0) {
+    return (
+      <span className="inline-flex items-center gap-1 text-[11px] text-[var(--success)]">
+        <span className="h-1.5 w-1.5 rounded-full bg-[var(--success)]" />
+        {webhooks.length} healthy
+      </span>
+    );
+  }
+  const tooltipLines = unhealthy
+    .map(
+      (w) =>
+        `Team ${w.teamId}: ${w.failureCount} failure${w.failureCount === 1 ? "" : "s"}${w.lastFailedAt ? ` (last ${new Date(w.lastFailedAt).toLocaleString()})` : ""}`,
+    )
+    .join("\n");
+  return (
+    <span
+      className="inline-flex items-center gap-1 text-[11px] text-[var(--danger)]"
+      title={tooltipLines}
+    >
+      <span className="h-1.5 w-1.5 rounded-full bg-[var(--danger)]" />
+      {unhealthy.length} unhealthy of {webhooks.length}
+    </span>
   );
 }
 

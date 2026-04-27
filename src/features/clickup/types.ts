@@ -46,6 +46,17 @@ export type ClickUpWebhookUnregisterResult = {
   failures: Array<{ webhookId: string; error: string }>;
 };
 
+export type ClickUpWebhookHealthResult = {
+  webhooks: Array<{
+    webhookId: string;
+    teamId: string;
+    isHealthy: boolean;
+    failureCount: number;
+    lastFailedAt: string | null;
+    registeredAt: string;
+  }>;
+};
+
 export type ClickUpMembersSyncResult = {
   teamsScanned: number;
   membersFound: number;

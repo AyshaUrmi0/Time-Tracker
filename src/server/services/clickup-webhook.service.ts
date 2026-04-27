@@ -12,6 +12,7 @@ import {
 import { upsertSingleTaskFromClickUp } from "@/server/services/clickup-sync.service";
 import { handleClickUpInvalidToken } from "@/server/services/clickup-error-handling";
 import type {
+  ClickUpWebhookHealthResult,
   ClickUpWebhookProcessResult,
   ClickUpWebhookRegisterResult,
   ClickUpWebhookUnregisterResult,
@@ -87,6 +88,37 @@ async function handleEvent(
 }
 
 export const clickupWebhookService = {
+  async getHealth(actor: SessionUser): Promise<ClickUpWebhookHealthResult> {
+    const conn = await prisma.clickUpConnection.findUnique({
+      where: { userId: actor.userId },
+      select: {
+        id: true,
+        webhooks: {
+          select: {
+            clickupWebhookId: true,
+            clickupTeamId: true,
+            isHealthy: true,
+            failureCount: true,
+            lastFailedAt: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: "asc" },
+        },
+      },
+    });
+    if (!conn) return { webhooks: [] };
+    return {
+      webhooks: conn.webhooks.map((w) => ({
+        webhookId: w.clickupWebhookId,
+        teamId: w.clickupTeamId,
+        isHealthy: w.isHealthy,
+        failureCount: w.failureCount,
+        lastFailedAt: w.lastFailedAt ? w.lastFailedAt.toISOString() : null,
+        registeredAt: w.createdAt.toISOString(),
+      })),
+    };
+  },
+
   async register(
     actor: SessionUser,
     endpoint: string,

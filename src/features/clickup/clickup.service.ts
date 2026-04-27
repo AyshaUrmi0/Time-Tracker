@@ -4,6 +4,7 @@ import type {
   ClickUpMembersSyncResult,
   ClickUpSyncResult,
   ClickUpTimeEntriesPullResult,
+  ClickUpWebhookHealthResult,
   ClickUpWebhookRegisterResult,
   ClickUpWebhookUnregisterResult,
 } from "./types";
@@ -62,6 +63,12 @@ export const clickupService = {
     return apiFetch<{ result: ClickUpWebhookUnregisterResult }>(
       "/api/integrations/clickup/webhook/register",
       { method: "DELETE" },
+    ).then((r) => r.result);
+  },
+
+  webhookHealth() {
+    return apiFetch<{ result: ClickUpWebhookHealthResult }>(
+      "/api/integrations/clickup/webhook/health",
     ).then((r) => r.result);
   },
 };
