@@ -9,6 +9,7 @@ import { signIn } from "next-auth/react";
 import { signUpSchema, type SignUpInput } from "@/features/auth/auth.schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { FormField } from "@/components/ui/form-field";
 
 type FieldErrors = Partial<Record<keyof SignUpInput, string[]>>;
@@ -113,9 +114,8 @@ export function SignUpForm() {
         </FormField>
 
         <FormField id="password" label="Password" error={errors.password?.message} hint="At least 8 characters">
-          <Input
+          <PasswordInput
             id="password"
-            type="password"
             autoComplete="new-password"
             placeholder="••••••••"
             error={!!errors.password}

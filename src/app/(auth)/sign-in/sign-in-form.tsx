@@ -9,6 +9,7 @@ import { signIn } from "next-auth/react";
 import { signInSchema, type SignInInput } from "@/features/auth/auth.schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { FormField } from "@/components/ui/form-field";
 
 export function SignInForm() {
@@ -61,9 +62,8 @@ export function SignInForm() {
         </FormField>
 
         <FormField id="password" label="Password" error={errors.password?.message}>
-          <Input
+          <PasswordInput
             id="password"
-            type="password"
             autoComplete="current-password"
             placeholder="••••••••"
             error={!!errors.password}
