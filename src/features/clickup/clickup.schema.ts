@@ -12,3 +12,15 @@ export const connectClickUpSchema = z.object({
 });
 
 export type ConnectClickUpInput = z.infer<typeof connectClickUpSchema>;
+
+export const linkMemberSchema = z.object({
+  localUserId: z.string().min(1, "localUserId is required"),
+  clickupUserId: z
+    .number()
+    .int()
+    .positive()
+    .nullable(),
+  clickupEmail: z.string().email().optional().nullable(),
+});
+
+export type LinkMemberInput = z.infer<typeof linkMemberSchema>;

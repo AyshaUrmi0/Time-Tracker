@@ -96,4 +96,59 @@ export const clickupMembersService = {
       conflicts,
     };
   },
+
+  async linkMember(input: {
+    localUserId: string;
+    clickupUserId: number | null;
+    clickupEmail?: string | null;
+  }): Promise<{
+    linked: boolean;
+    userId: string;
+    clickupUserId: number | null;
+    clickupEmail: string | null;
+  }> {
+    const user = await prisma.user.findUnique({
+      where: { id: input.localUserId },
+      select: { id: true, clickupUserId: true, clickupEmail: true },
+    });
+    if (!user) throw ApiErrors.notFound("User not found");
+
+    if (input.clickupUserId !== null) {
+      const taken = await prisma.user.findFirst({
+        where: {
+          clickupUserId: input.clickupUserId,
+          id: { not: input.localUserId },
+        },
+        select: { id: true, email: true },
+      });
+      if (taken) {
+        throw ApiErrors.conflict(
+          "CLICKUP_USER_ID_IN_USE",
+          `Another local user (${taken.email}) is already linked to that ClickUp user.`,
+          { conflictingLocalUserId: taken.id },
+        );
+      }
+    }
+
+    const nextEmail =
+      input.clickupUserId === null
+        ? null
+        : (input.clickupEmail ?? user.clickupEmail ?? null);
+
+    const updated = await prisma.user.update({
+      where: { id: input.localUserId },
+      data: {
+        clickupUserId: input.clickupUserId,
+        clickupEmail: nextEmail,
+      },
+      select: { id: true, clickupUserId: true, clickupEmail: true },
+    });
+
+    return {
+      linked: updated.clickupUserId !== null,
+      userId: updated.id,
+      clickupUserId: updated.clickupUserId,
+      clickupEmail: updated.clickupEmail,
+    };
+  },
 };
