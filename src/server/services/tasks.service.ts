@@ -111,6 +111,7 @@ export const tasksService = {
       title: input.title !== undefined,
       description: input.description !== undefined,
       status: input.status !== undefined,
+      assignee: input.assignedToId !== undefined,
     });
 
     return updated;
