@@ -155,6 +155,14 @@ export function EntryFormDialog({
           clickupTaskId: null,
           clickupUrl: null,
           clickupLastSyncedAt: null,
+          clickupStatus: null,
+          clickupStatusColor: null,
+          clickupPriority: null,
+          clickupDueDate: null,
+          clickupTags: [],
+          clickupSpaceName: null,
+          clickupFolderName: null,
+          clickupListName: null,
         });
       }
     }
