@@ -1,12 +1,17 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useClickUpStatus } from "@/features/clickup/clickup.queries";
+import { ClickUpAdminActions } from "@/features/clickup/components/clickup-admin-actions";
 import { ClickUpConnectForm } from "@/features/clickup/components/clickup-connect-form";
 import { ClickUpStatusCard } from "@/features/clickup/components/clickup-status-card";
 
 export function SettingsPageView() {
   const statusQuery = useClickUpStatus();
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "ADMIN";
+  const isConnected = statusQuery.data?.connected === true;
 
   return (
     <div className="mx-auto max-w-[800px]">
@@ -31,6 +36,8 @@ export function SettingsPageView() {
         ) : (
           <ClickUpConnectForm />
         )}
+
+        {isAdmin && isConnected && <ClickUpAdminActions />}
       </section>
     </div>
   );
