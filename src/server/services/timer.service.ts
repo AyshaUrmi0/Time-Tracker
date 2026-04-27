@@ -15,8 +15,18 @@ function computeDurationSeconds(startTime: Date, endTime: Date): number {
 
 export const timerService = {
   async getCurrent(user: SessionUser) {
-    return prisma.timeEntry.findFirst({
+    const local = await prisma.timeEntry.findFirst({
       where: { userId: user.userId, endTime: null },
+      include: timerInclude,
+    });
+    if (local) return local;
+
+    const adopted = await clickupTimeEntryService.adoptRunningClickUpTimer(
+      user.userId,
+    );
+    if (!adopted) return null;
+    return prisma.timeEntry.findUnique({
+      where: { id: adopted.id },
       include: timerInclude,
     });
   },
