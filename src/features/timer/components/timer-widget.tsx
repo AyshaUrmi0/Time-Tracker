@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar } from "@/components/ui/avatar";
 import { EntryFormDialog } from "@/features/time-entries/components/entry-form-dialog";
 import {
   useCurrentTimer,
@@ -11,6 +12,7 @@ import {
 } from "../timer.queries";
 import { useLiveDuration, formatHMS } from "../hooks/use-live-duration";
 import { TaskPickerDialog } from "./task-picker-dialog";
+import type { RunningTimer } from "../types";
 
 export function TimerWidget() {
   const { data: session, status } = useSession();
@@ -27,25 +29,36 @@ export function TimerWidget() {
     return <Skeleton className="h-9 w-[160px]" />;
   }
 
-  const timer = data?.timer;
+  const timer = data?.timer ?? null;
+  const others = data?.others ?? [];
 
   return (
     <>
-      {timer ? (
-        <RunningPill
-          taskTitle={timer.task.title}
-          startTime={timer.startTime}
-          onStop={() => stopMutation.mutate()}
-          loading={stopMutation.isPending}
-        />
-      ) : (
-        <StartButton
-          isAdmin={isAdmin}
-          disabled={startMutation.isPending}
-          onStartTimer={() => setPickerOpen(true)}
-          onManual={() => setManualOpen(true)}
-        />
-      )}
+      <div className="inline-flex items-center gap-2">
+        {timer ? (
+          <RunningPill
+            taskTitle={timer.task.title}
+            startTime={timer.startTime}
+            onStop={() => stopMutation.mutate(undefined)}
+            loading={stopMutation.isPending}
+          />
+        ) : (
+          <StartButton
+            isAdmin={isAdmin}
+            disabled={startMutation.isPending}
+            onStartTimer={() => setPickerOpen(true)}
+            onManual={() => setManualOpen(true)}
+          />
+        )}
+
+        {isAdmin && others.length > 0 && (
+          <TeamRunningTimers
+            timers={others}
+            onStop={(entryId) => stopMutation.mutate(entryId)}
+            stopping={stopMutation.isPending}
+          />
+        )}
+      </div>
 
       <TaskPickerDialog
         open={pickerOpen}
@@ -63,6 +76,120 @@ export function TimerWidget() {
         mode="create"
       />
     </>
+  );
+}
+
+function TeamRunningTimers({
+  timers,
+  onStop,
+  stopping,
+}: {
+  timers: RunningTimer[];
+  onStop: (entryId: string) => void;
+  stopping: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-[14px] font-medium text-[var(--text-secondary)] shadow-[var(--shadow-sm)] transition-colors duration-150 hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+      >
+        <span aria-hidden className="h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--danger)]" />
+        <span className="tabular text-[var(--text-primary)]">{timers.length}</span>
+        running
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 top-[calc(100%+6px)] z-50 w-80 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-md)]"
+        >
+          <div className="border-b border-[var(--border)] px-3 py-2">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+              Team timers ({timers.length})
+            </p>
+          </div>
+          <ul className="max-h-[60vh] divide-y divide-[var(--border)] overflow-auto">
+            {timers.map((t) => (
+              <TeamTimerRow
+                key={t.id}
+                timer={t}
+                onStop={() => onStop(t.id)}
+                stopping={stopping}
+              />
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TeamTimerRow({
+  timer,
+  onStop,
+  stopping,
+}: {
+  timer: RunningTimer;
+  onStop: () => void;
+  stopping: boolean;
+}) {
+  const seconds = useLiveDuration(timer.startTime);
+
+  return (
+    <li className="flex items-center gap-3 px-3 py-2.5">
+      <Avatar name={timer.user.name} id={timer.user.id} size={28} />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[14px] font-medium text-[var(--text-primary)]">
+          {timer.user.name}
+        </p>
+        <p
+          className="truncate text-[13px] text-[var(--text-muted)]"
+          title={timer.task.title}
+        >
+          {timer.task.title}
+        </p>
+      </div>
+      <span
+        className="tabular shrink-0 text-[13px] font-semibold text-[var(--text-primary)]"
+        aria-label="Elapsed time"
+      >
+        {formatHMS(seconds)}
+      </span>
+      <button
+        type="button"
+        onClick={onStop}
+        disabled={stopping}
+        title="Stop this timer"
+        aria-label={`Stop ${timer.user.name}'s timer`}
+        className="inline-flex h-7 items-center gap-1 rounded-md bg-[var(--danger-soft)] px-2 text-[12px] font-semibold text-[var(--danger)] transition-colors duration-150 hover:bg-[var(--danger)] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--danger)] disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+          <rect x="6" y="6" width="12" height="12" rx="1" />
+        </svg>
+        Stop
+      </button>
+    </li>
   );
 }
 
