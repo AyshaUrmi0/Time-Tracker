@@ -9,8 +9,12 @@ import type { SessionUser } from "@/types";
 
 export const clickupMembersService = {
   async syncMembers(actor: SessionUser): Promise<ClickUpMembersSyncResult> {
+    return this.syncMembersForOwner(actor.userId);
+  },
+
+  async syncMembersForOwner(ownerUserId: string): Promise<ClickUpMembersSyncResult> {
     const conn = await prisma.clickUpConnection.findUnique({
-      where: { userId: actor.userId },
+      where: { userId: ownerUserId },
       select: {
         accessTokenEncrypted: true,
         encryptionIv: true,
@@ -32,7 +36,7 @@ export const clickupMembersService = {
       teams = result.teams;
       members = result.members;
     } catch (err) {
-      await handleClickUpInvalidToken(err, actor.userId);
+      await handleClickUpInvalidToken(err, ownerUserId);
       throw err;
     }
 
