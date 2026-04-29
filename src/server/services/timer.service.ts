@@ -15,10 +15,35 @@ function computeDurationSeconds(startTime: Date, endTime: Date): number {
 
 export const timerService = {
   async getCurrent(user: SessionUser) {
-    const local = await prisma.timeEntry.findFirst({
+    let local = await prisma.timeEntry.findFirst({
       where: { userId: user.userId, endTime: null },
       include: timerInclude,
     });
+
+    if (
+      local &&
+      local.clickupTimeEntryId !== null &&
+      local.clickupTeamId !== null
+    ) {
+      const taskMeta = await prisma.task.findUnique({
+        where: { id: local.taskId },
+        select: { clickupTaskId: true },
+      });
+      const result = await clickupTimeEntryService.syncStaleRunningTimer({
+        id: local.id,
+        userId: user.userId,
+        clickupTimeEntryId: local.clickupTimeEntryId,
+        clickupTeamId: local.clickupTeamId,
+        clickupTaskId: taskMeta?.clickupTaskId ?? null,
+      });
+      if (result.syncedStop) {
+        local = await prisma.timeEntry.findFirst({
+          where: { userId: user.userId, endTime: null },
+          include: timerInclude,
+        });
+      }
+    }
+
     if (local) return local;
 
     const adopted = await clickupTimeEntryService.adoptRunningClickUpTimer(

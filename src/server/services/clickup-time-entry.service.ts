@@ -190,6 +190,74 @@ export const clickupTimeEntryService = {
     }
   },
 
+  async syncStaleRunningTimer(localEntry: {
+    id: string;
+    userId: string;
+    clickupTimeEntryId: string;
+    clickupTeamId: string;
+    clickupTaskId: string | null;
+  }): Promise<{ syncedStop: boolean }> {
+    const conn = await prisma.clickUpConnection.findUnique({
+      where: { userId: localEntry.userId },
+      select: {
+        accessTokenEncrypted: true,
+        encryptionIv: true,
+        isActive: true,
+      },
+    });
+    if (!conn || !conn.isActive) return { syncedStop: false };
+
+    const token = decrypt(conn.accessTokenEncrypted, conn.encryptionIv);
+    let ccCurrent;
+    try {
+      ccCurrent = await getCurrentClickUpTimer(token, localEntry.clickupTeamId);
+    } catch (err) {
+      await handleClickUpInvalidToken(err, localEntry.userId);
+      return { syncedStop: false };
+    }
+
+    if (ccCurrent && ccCurrent.id === localEntry.clickupTimeEntryId) {
+      return { syncedStop: false };
+    }
+
+    if (localEntry.clickupTaskId) {
+      try {
+        await this.reconcileTaskTimeEntries(
+          localEntry.clickupTaskId,
+          localEntry.userId,
+        );
+      } catch (err) {
+        console.error(
+          `[clickup-stale-stop] reconcile failed for entry ${localEntry.id}:`,
+          err,
+        );
+      }
+    }
+
+    const after = await prisma.timeEntry.findUnique({
+      where: { id: localEntry.id },
+      select: { endTime: true, startTime: true },
+    });
+    if (after && after.endTime === null) {
+      const now = new Date();
+      const startMs = after.startTime.getTime();
+      await prisma.timeEntry.update({
+        where: { id: localEntry.id },
+        data: {
+          endTime: now,
+          durationSeconds: Math.max(
+            0,
+            Math.floor((now.getTime() - startMs) / 1000),
+          ),
+          syncStatus: "SYNCED",
+          syncLastAttemptAt: now,
+        },
+      });
+    }
+
+    return { syncedStop: true };
+  },
+
   async pushOnStop(timeEntryId: string): Promise<void> {
     try {
       const entry = await prisma.timeEntry.findUnique({
