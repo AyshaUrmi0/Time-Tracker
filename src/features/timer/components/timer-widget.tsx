@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar } from "@/components/ui/avatar";
+import { useModal } from "@/contexts/ModalContext";
 import { EntryFormDialog } from "@/features/time-entries/components/entry-form-dialog";
 import {
   useCurrentTimer,
@@ -13,6 +14,8 @@ import {
 import { useLiveDuration, formatHMS } from "../hooks/use-live-duration";
 import { TaskPickerDialog } from "./task-picker-dialog";
 import type { RunningTimer } from "../types";
+
+const OVERTIME_THRESHOLD_SECONDS = 8 * 60 * 60;
 
 export function TimerWidget() {
   const { data: session, status } = useSession();
@@ -37,6 +40,7 @@ export function TimerWidget() {
       <div className="inline-flex items-center gap-2">
         {timer ? (
           <RunningPill
+            timerId={timer.id}
             taskTitle={timer.task.title}
             startTime={timer.startTime}
             onStop={() => stopMutation.mutate(undefined)}
@@ -332,17 +336,38 @@ function ManualIcon() {
 }
 
 function RunningPill({
+  timerId,
   taskTitle,
   startTime,
   onStop,
   loading,
 }: {
+  timerId: string;
   taskTitle: string;
   startTime: string;
   onStop: () => void;
   loading: boolean;
 }) {
   const seconds = useLiveDuration(startTime);
+  const modal = useModal();
+  const promptedRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (seconds < OVERTIME_THRESHOLD_SECONDS) return;
+    if (promptedRef.current === timerId) return;
+    promptedRef.current = timerId;
+    modal
+      .confirm({
+        title: "Timer running for over 8 hours",
+        description: `Your timer for "${taskTitle}" has been running for ${formatHMS(seconds)}. Would you like to stop it now?`,
+        confirmLabel: "Stop timer",
+        cancelLabel: "Keep running",
+        destructive: true,
+      })
+      .then((ok) => {
+        if (ok) onStop();
+      });
+  }, [seconds, timerId, taskTitle, modal, onStop]);
 
   return (
     <div

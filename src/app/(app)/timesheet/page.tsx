@@ -30,13 +30,11 @@ function computeRange(range: Range): { from: string; to: string } {
 }
 
 function formatDurationSec(sec: number): string {
-  if (sec <= 0) return "0m";
-  const m = Math.floor(sec / 60);
-  const h = Math.floor(m / 60);
-  const rem = m % 60;
-  if (h === 0) return `${m}m`;
-  if (rem === 0) return `${h}h`;
-  return `${h}h ${rem}m`;
+  const total = Math.max(0, Math.floor(sec));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
 export default function TimesheetPage() {
