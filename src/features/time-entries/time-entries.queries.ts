@@ -15,6 +15,8 @@ export function useTimeEntries(filters: TimeEntryListFilters = {}) {
   return useQuery({
     queryKey: [...ENTRIES_KEY, filters],
     queryFn: () => timeEntriesService.list(filters),
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
   });
 }
 
