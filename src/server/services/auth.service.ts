@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { ApiErrors } from "@/lib/api-error";
 import type { SignUpInput } from "@/features/auth/auth.schema";
+import { clickupMembersService } from "@/server/services/clickup-members.service";
 
 const BCRYPT_ROUNDS = 12;
 
@@ -33,6 +34,19 @@ export const authService = {
         createdAt: true,
       },
     });
+
+    const activeConnectionOwner = await prisma.clickUpConnection.findFirst({
+      where: { isActive: true },
+      select: { userId: true },
+      orderBy: { connectedAt: "asc" },
+    });
+    if (activeConnectionOwner) {
+      try {
+        await clickupMembersService.syncMembersForOwner(activeConnectionOwner.userId);
+      } catch (err) {
+        console.warn("Automatic ClickUp member sync after signup failed", err);
+      }
+    }
 
     return user;
   },
