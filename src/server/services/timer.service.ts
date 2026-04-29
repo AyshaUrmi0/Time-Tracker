@@ -7,6 +7,7 @@ import type { StartTimerInput } from "@/features/timer/timer.schema";
 
 const timerInclude = {
   task: { select: { id: true, title: true, status: true } },
+  user: { select: { id: true, name: true } },
 } as const;
 
 function computeDurationSeconds(startTime: Date, endTime: Date): number {
@@ -44,16 +45,32 @@ export const timerService = {
       }
     }
 
-    if (local) return local;
+    let own = local;
+    if (!own) {
+      const adopted = await clickupTimeEntryService.adoptRunningClickUpTimer(
+        user.userId,
+      );
+      if (adopted) {
+        own = await prisma.timeEntry.findUnique({
+          where: { id: adopted.id },
+          include: timerInclude,
+        });
+      }
+    }
 
-    const adopted = await clickupTimeEntryService.adoptRunningClickUpTimer(
-      user.userId,
-    );
-    if (!adopted) return null;
-    return prisma.timeEntry.findUnique({
-      where: { id: adopted.id },
-      include: timerInclude,
-    });
+    const others =
+      user.role === "ADMIN"
+        ? await prisma.timeEntry.findMany({
+            where: {
+              endTime: null,
+              userId: { not: user.userId },
+            },
+            include: timerInclude,
+            orderBy: { startTime: "desc" },
+          })
+        : [];
+
+    return { own, others };
   },
 
   async start(user: SessionUser, input: StartTimerInput) {
@@ -124,11 +141,24 @@ export const timerService = {
     }
   },
 
-  async stop(user: SessionUser) {
-    const running = await prisma.timeEntry.findFirst({
-      where: { userId: user.userId, endTime: null },
-    });
-    if (!running) throw ApiErrors.noActiveTimer();
+  async stop(user: SessionUser, entryId?: string) {
+    let running;
+    if (entryId) {
+      running = await prisma.timeEntry.findUnique({
+        where: { id: entryId },
+        select: { id: true, userId: true, startTime: true, endTime: true },
+      });
+      if (!running || running.endTime !== null) throw ApiErrors.noActiveTimer();
+      if (running.userId !== user.userId && user.role !== "ADMIN") {
+        throw ApiErrors.forbidden();
+      }
+    } else {
+      running = await prisma.timeEntry.findFirst({
+        where: { userId: user.userId, endTime: null },
+        select: { id: true, userId: true, startTime: true, endTime: true },
+      });
+      if (!running) throw ApiErrors.noActiveTimer();
+    }
 
     const now = new Date();
     const stopped = await prisma.timeEntry.update({
