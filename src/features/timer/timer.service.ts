@@ -18,7 +18,10 @@ export const timerService = {
     });
   },
 
-  stop() {
-    return apiFetch<StopTimerResponse>("/api/timer/stop", { method: "POST" });
+  stop(entryId?: string) {
+    return apiFetch<StopTimerResponse>("/api/timer/stop", {
+      method: "POST",
+      body: entryId ? { entryId } : {},
+    });
   },
 };

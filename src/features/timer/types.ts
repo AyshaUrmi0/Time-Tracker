@@ -6,6 +6,11 @@ export type TimerTaskSummary = {
   status: TaskStatus;
 };
 
+export type TimerUserSummary = {
+  id: string;
+  name: string;
+};
+
 export type RunningTimer = {
   id: string;
   userId: string;
@@ -13,6 +18,7 @@ export type RunningTimer = {
   note: string | null;
   startTime: string;
   task: TimerTaskSummary;
+  user: TimerUserSummary;
 };
 
 export type StoppedTimer = RunningTimer & {
@@ -31,4 +37,5 @@ export type StopTimerResponse = {
 
 export type CurrentTimerResponse = {
   timer: RunningTimer | null;
+  others: RunningTimer[];
 };
