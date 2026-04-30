@@ -148,9 +148,9 @@ export const timerService = {
       );
 
       if (result.stoppedPrevious) {
-        await clickupTimeEntryService.pushOnStop(result.stoppedPrevious.id);
+        void clickupTimeEntryService.pushOnStop(result.stoppedPrevious.id);
       }
-      await clickupTimeEntryService.pushTimerStart(result.timer.id);
+      void clickupTimeEntryService.pushTimerStart(result.timer.id);
       return result;
     } catch (err) {
       if (err instanceof Prisma.PrismaClientKnownRequestError) {
@@ -194,7 +194,7 @@ export const timerService = {
       include: timerInclude,
     });
 
-    await clickupTimeEntryService.pushOnStop(stopped.id);
+    void clickupTimeEntryService.pushOnStop(stopped.id);
 
     return stopped;
   },

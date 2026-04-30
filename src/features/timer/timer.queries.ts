@@ -30,6 +30,9 @@ export function useStartTimer() {
       }));
       qc.invalidateQueries({ queryKey: TIMER_KEY });
       qc.invalidateQueries({ queryKey: ["tasks", "list"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["calendar"] });
+      qc.invalidateQueries({ queryKey: ["time-entries"] });
       if (data.stoppedPrevious) {
         toast.success(
           `Stopped "${data.stoppedPrevious.task.title}". Tracking "${data.timer.task.title}".`,
@@ -65,6 +68,9 @@ export function useStopTimer() {
       });
       qc.invalidateQueries({ queryKey: TIMER_KEY });
       qc.invalidateQueries({ queryKey: ["tasks", "list"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["calendar"] });
+      qc.invalidateQueries({ queryKey: ["time-entries"] });
       const minutes = Math.max(1, Math.round(data.timer.durationSeconds / 60));
       const label = minutes === 1 ? "1 min" : `${minutes} min`;
       if (context?.stoppingOwn) {
