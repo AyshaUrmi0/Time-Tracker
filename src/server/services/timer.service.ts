@@ -85,6 +85,19 @@ export const timerService = {
       );
     }
 
+    if (user.role !== "ADMIN") {
+      const localUser = await prisma.user.findUnique({
+        where: { id: user.userId },
+        select: { clickupUserId: true },
+      });
+      if (!localUser || localUser.clickupUserId === null) {
+        throw ApiErrors.conflict(
+          "CLICKUP_NOT_CONNECTED",
+          "You're not a member of the connected ClickUp workspace. Ask your admin to invite you.",
+        );
+      }
+    }
+
     const task = await prisma.task.findUnique({
       where: { id: input.taskId },
       select: { id: true, isArchived: true },
