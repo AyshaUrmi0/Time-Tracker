@@ -356,7 +356,9 @@ export function EntryFormDialog({
                 {taskGroups.others.map((t) => (
                   <option key={t.id} value={t.id} disabled={t.isArchived}>
                     {t.title}
-                    {t.assignedTo ? ` · ${t.assignedTo.name}` : ""}
+                    {t.assignedTo
+                      ? ` · ${t.assignedTo.name}${t.assignedTo.email ? ` (${t.assignedTo.email})` : ""}`
+                      : ""}
                   </option>
                 ))}
               </optgroup>

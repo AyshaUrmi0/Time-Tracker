@@ -155,9 +155,17 @@ function EntryRow({
         )}
         <div className="mt-1 inline-flex flex-wrap items-center gap-2">
           {showUser && (
-            <span className="inline-flex items-center gap-1.5 text-[13px] text-[var(--text-muted)]">
+            <span
+              className="inline-flex items-center gap-1.5 text-[13px] text-[var(--text-muted)]"
+              title={entry.user.email}
+            >
               <Avatar name={entry.user.name} id={entry.user.id} size={16} />
-              {entry.user.name}
+              <span>{entry.user.name}</span>
+              {entry.user.email && (
+                <span className="text-[var(--text-muted)]">
+                  · {entry.user.email}
+                </span>
+              )}
             </span>
           )}
           <SyncStatusBadge entry={entry} />

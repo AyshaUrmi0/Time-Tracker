@@ -253,7 +253,15 @@ function OverflowStack({
                     </span>
                     <span className="flex items-center gap-2 text-[12px] text-[var(--text-muted)]">
                       {showUser && e.user?.name && (
-                        <span className="truncate">{e.user.name}</span>
+                        <span
+                          className="truncate"
+                          title={e.user.email}
+                        >
+                          {e.user.name}
+                          {e.user.email && (
+                            <span className="ml-1">· {e.user.email}</span>
+                          )}
+                        </span>
                       )}
                       <span className="tabular">
                         {formatTimeRangeLocal(e.startTime, e.endTime, timezone)}

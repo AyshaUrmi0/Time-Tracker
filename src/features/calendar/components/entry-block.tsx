@@ -25,9 +25,15 @@ export function EntryBlock({ entry, showUser, onClick, style }: Props) {
   const bg = running ? "var(--accent-soft)" : color.bg;
   const text = running ? "var(--accent-hover)" : color.text;
 
+  const userLabel = entry.user
+    ? entry.user.email
+      ? `${entry.user.name} <${entry.user.email}>`
+      : entry.user.name
+    : null;
+
   const tooltip = [
     entry.taskTitle,
-    entry.user?.name ? `· ${entry.user.name}` : null,
+    userLabel ? `· ${userLabel}` : null,
     entry.durationSeconds != null
       ? `· ${formatDurationSec(entry.durationSeconds)}`
       : running

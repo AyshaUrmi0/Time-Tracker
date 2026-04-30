@@ -50,8 +50,20 @@ export function RecentEntries({ entries, showUser }: Props) {
                     {entry.note}
                   </p>
                 )}
+                {showUser && entry.user && (
+                  <p
+                    className="mt-0.5 truncate text-[13px] text-[var(--text-muted)]"
+                    title={entry.user.email}
+                  >
+                    {entry.user.name}
+                    {entry.user.email && (
+                      <span className="ml-1 text-[12px]">
+                        · {entry.user.email}
+                      </span>
+                    )}
+                  </p>
+                )}
                 <p className="mt-0.5 text-[13px] text-[var(--text-muted)]">
-                  {showUser && entry.user ? `${entry.user.name} · ` : ""}
                   {formatTime(entry.startTime)} – {formatTime(entry.endTime)}
                 </p>
               </div>
