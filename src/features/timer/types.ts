@@ -9,6 +9,7 @@ export type TimerTaskSummary = {
 export type TimerUserSummary = {
   id: string;
   name: string;
+  email: string;
 };
 
 export type RunningTimer = {

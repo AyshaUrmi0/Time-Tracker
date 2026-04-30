@@ -58,8 +58,16 @@ export function RunningTimers({ timers, showUser }: Props) {
                 {timer.task.title}
               </p>
               {showUser && timer.user && (
-                <p className="text-[13px] text-[var(--text-muted)]">
+                <p
+                  className="truncate text-[13px] text-[var(--text-muted)]"
+                  title={timer.user.email}
+                >
                   {timer.user.name}
+                  {timer.user.email && (
+                    <span className="ml-1 text-[12px] text-[var(--text-muted)]">
+                      · {timer.user.email}
+                    </span>
+                  )}
                 </p>
               )}
             </div>

@@ -70,7 +70,7 @@ export const calendarService = {
         endTime: true,
         durationSeconds: true,
         isManual: true,
-        user: { select: { id: true, name: true } },
+        user: { select: { id: true, name: true, email: true } },
         task: { select: { id: true, title: true, status: true } },
       },
       orderBy: { startTime: "asc" },
@@ -122,7 +122,9 @@ export const calendarService = {
         durationSeconds: e.endTime ? (e.durationSeconds ?? seconds) : null,
         isManual: e.isManual,
         user:
-          scope === "team" ? { id: e.user.id, name: e.user.name } : undefined,
+          scope === "team"
+            ? { id: e.user.id, name: e.user.name, email: e.user.email }
+            : undefined,
       };
 
       bucket.entries.push(calendarEntry);
