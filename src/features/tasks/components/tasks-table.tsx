@@ -79,16 +79,35 @@ function TaskRow({
       </td>
       <td className="whitespace-nowrap px-4 py-3">
         {task.assignedTo ? (
-          <span className="inline-flex items-center gap-2">
+          <span
+            className="inline-flex items-center gap-2"
+            title={task.assignedTo.email}
+          >
             <Avatar name={task.assignedTo.name} id={task.assignedTo.id} size={22} />
-            <span className="text-[var(--text-secondary)]">{task.assignedTo.name}</span>
+            <span className="flex flex-col leading-tight">
+              <span className="text-[var(--text-secondary)]">
+                {task.assignedTo.name}
+              </span>
+              {task.assignedTo.email && (
+                <span className="text-[12px] text-[var(--text-muted)]">
+                  {task.assignedTo.email}
+                </span>
+              )}
+            </span>
           </span>
         ) : (
           <span className="italic text-[var(--text-muted)]">Unassigned</span>
         )}
       </td>
-      <td className="hidden whitespace-nowrap px-4 py-3 text-[var(--text-secondary)] md:table-cell">
-        {task.createdBy.name}
+      <td className="hidden whitespace-nowrap px-4 py-3 md:table-cell">
+        <span className="flex flex-col leading-tight" title={task.createdBy.email}>
+          <span className="text-[var(--text-secondary)]">{task.createdBy.name}</span>
+          {task.createdBy.email && (
+            <span className="text-[12px] text-[var(--text-muted)]">
+              {task.createdBy.email}
+            </span>
+          )}
+        </span>
       </td>
       <td className="hidden whitespace-nowrap px-4 py-3 text-[var(--text-muted)] lg:table-cell">
         {formatDistanceToNowStrict(new Date(task.updatedAt), { addSuffix: true })}

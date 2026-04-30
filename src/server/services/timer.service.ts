@@ -7,7 +7,7 @@ import type { StartTimerInput } from "@/features/timer/timer.schema";
 
 const timerInclude = {
   task: { select: { id: true, title: true, status: true } },
-  user: { select: { id: true, name: true } },
+  user: { select: { id: true, name: true, email: true } },
 } as const;
 
 function computeDurationSeconds(startTime: Date, endTime: Date): number {

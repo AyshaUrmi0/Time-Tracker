@@ -64,14 +64,26 @@ export function TopNav() {
 
         <div className="flex items-center gap-3">
           <TimerWidget />
-          <AvatarMenu name={session?.user?.name ?? "User"} id={session?.user?.id} />
+          <AvatarMenu
+            name={session?.user?.name ?? "User"}
+            email={session?.user?.email ?? null}
+            id={session?.user?.id}
+          />
         </div>
       </div>
     </header>
   );
 }
 
-function AvatarMenu({ name, id }: { name: string; id?: string }) {
+function AvatarMenu({
+  name,
+  email,
+  id,
+}: {
+  name: string;
+  email: string | null;
+  id?: string;
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -101,7 +113,17 @@ function AvatarMenu({ name, id }: { name: string; id?: string }) {
           className="absolute right-0 mt-2 w-56 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-md)]"
         >
           <div className="border-b border-[var(--border)] px-3 py-2.5">
-            <p className="text-[15px] font-medium text-[var(--text-primary)]">{name}</p>
+            <p className="truncate text-[15px] font-medium text-[var(--text-primary)]">
+              {name}
+            </p>
+            {email && (
+              <p
+                className="mt-0.5 truncate text-[13px] text-[var(--text-muted)]"
+                title={email}
+              >
+                {email}
+              </p>
+            )}
           </div>
           <button
             type="button"
