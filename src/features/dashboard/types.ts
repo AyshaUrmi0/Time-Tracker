@@ -2,7 +2,7 @@ import type { TaskStatus } from "@/features/tasks/types";
 
 export type DashboardScope = "user" | "team";
 
-export type DashboardUser = { id: string; name: string };
+export type DashboardUser = { id: string; name: string; email: string };
 
 export type DashboardRunningTimer = {
   id: string;

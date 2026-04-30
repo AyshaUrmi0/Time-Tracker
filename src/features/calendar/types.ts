@@ -2,7 +2,7 @@ import type { TaskStatus } from "@/features/tasks/types";
 
 export type CalendarScope = "user" | "team";
 
-export type CalendarUser = { id: string; name: string };
+export type CalendarUser = { id: string; name: string; email: string };
 
 export type CalendarEntry = {
   id: string;

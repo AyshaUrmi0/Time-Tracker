@@ -167,6 +167,14 @@ function TeamTimerRow({
         <p className="truncate text-[14px] font-medium text-[var(--text-primary)]">
           {timer.user.name}
         </p>
+        {timer.user.email && (
+          <p
+            className="truncate text-[12px] text-[var(--text-muted)]"
+            title={timer.user.email}
+          >
+            {timer.user.email}
+          </p>
+        )}
         <p
           className="truncate text-[13px] text-[var(--text-muted)]"
           title={timer.task.title}

@@ -86,7 +86,7 @@ export const dashboardService = {
         startTime: true,
         endTime: true,
         durationSeconds: true,
-        user: { select: { id: true, name: true } },
+        user: { select: { id: true, name: true, email: true } },
         task: { select: { id: true, title: true, status: true } },
       },
       orderBy: { startTime: "desc" },
@@ -116,7 +116,10 @@ export const dashboardService = {
         runningTimers.push({
           id: e.id,
           startTime: e.startTime.toISOString(),
-          user: scope === "team" ? { id: e.user.id, name: e.user.name } : undefined,
+          user:
+            scope === "team"
+              ? { id: e.user.id, name: e.user.name, email: e.user.email }
+              : undefined,
           task: {
             id: e.task.id,
             title: e.task.title,
@@ -165,7 +168,10 @@ export const dashboardService = {
         startTime: e.startTime.toISOString(),
         endTime: e.endTime!.toISOString(),
         durationSeconds: e.durationSeconds ?? 0,
-        user: scope === "team" ? { id: e.user.id, name: e.user.name } : undefined,
+        user:
+          scope === "team"
+            ? { id: e.user.id, name: e.user.name, email: e.user.email }
+            : undefined,
       }));
 
     return {
