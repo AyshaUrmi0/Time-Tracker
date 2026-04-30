@@ -24,6 +24,28 @@ const MAX_PULL_DAYS = 90;
 const PULL_CHUNK_DAYS = 7;
 const PULL_CHUNK_MS = PULL_CHUNK_DAYS * 24 * 60 * 60 * 1000;
 
+async function findPushConnection(preferredUserId: string) {
+  const preferred = await prisma.clickUpConnection.findUnique({
+    where: { userId: preferredUserId },
+    select: {
+      accessTokenEncrypted: true,
+      encryptionIv: true,
+      isActive: true,
+    },
+  });
+  if (preferred?.isActive) return preferred;
+
+  const fallback = await prisma.clickUpConnection.findFirst({
+    where: { isActive: true, revokedAt: null },
+    select: {
+      accessTokenEncrypted: true,
+      encryptionIv: true,
+      isActive: true,
+    },
+  });
+  return fallback;
+}
+
 export const clickupTimeEntryService = {
   async pushTimerStart(timeEntryId: string): Promise<void> {
     try {
@@ -271,6 +293,7 @@ export const clickupTimeEntryService = {
           note: true,
           clickupTimeEntryId: true,
           clickupTeamId: true,
+          user: { select: { clickupUserId: true } },
           task: {
             select: {
               clickupTaskId: true,
@@ -287,14 +310,7 @@ export const clickupTimeEntryService = {
       const durationMs = (entry.durationSeconds ?? 0) * 1000;
       if (durationMs <= 0) return;
 
-      const conn = await prisma.clickUpConnection.findUnique({
-        where: { userId: entry.userId },
-        select: {
-          accessTokenEncrypted: true,
-          encryptionIv: true,
-          isActive: true,
-        },
-      });
+      const conn = await findPushConnection(entry.userId);
       if (!conn || !conn.isActive) {
         await prisma.timeEntry.update({
           where: { id: entry.id },
@@ -332,6 +348,9 @@ export const clickupTimeEntryService = {
             duration: durationMs,
             description: entry.note ?? undefined,
             billable: false,
+            ...(entry.user.clickupUserId !== null
+              ? { assignee: entry.user.clickupUserId }
+              : {}),
           });
           await prisma.timeEntry.update({
             where: { id: entry.id },
@@ -435,14 +454,7 @@ export const clickupTimeEntryService = {
       if (!entry.clickupTeamId) return { pushed: false, reason: "no_team" };
       if (entry.endTime === null) return { pushed: false, reason: "running" };
 
-      const conn = await prisma.clickUpConnection.findUnique({
-        where: { userId: entry.userId },
-        select: {
-          accessTokenEncrypted: true,
-          encryptionIv: true,
-          isActive: true,
-        },
-      });
+      const conn = await findPushConnection(entry.userId);
       if (!conn || !conn.isActive) {
         await prisma.timeEntry.update({
           where: { id: entry.id },

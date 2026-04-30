@@ -319,6 +319,7 @@ export type CreateClickUpTimeEntryInput = {
   duration: number;
   description?: string;
   billable?: boolean;
+  assignee?: number;
 };
 
 type ClickUpCreateTimeEntryResponse = {
@@ -508,6 +509,7 @@ export async function createClickUpTimeEntry(
     token,
     {
       method: "POST",
+      query: input.assignee !== undefined ? { assignee: input.assignee } : undefined,
       body: {
         tid: input.tid,
         start: input.start,

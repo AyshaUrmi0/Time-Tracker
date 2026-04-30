@@ -1,13 +1,78 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { ApiErrors } from "@/lib/api-error";
-import { encrypt } from "@/lib/encryption";
-import { fetchClickUpUser } from "@/lib/clickup/client";
+import { decrypt, encrypt } from "@/lib/encryption";
+import {
+  fetchClickUpTeamsWithMembers,
+  fetchClickUpUser,
+} from "@/lib/clickup/client";
 import type { ConnectClickUpInput } from "@/features/clickup/clickup.schema";
 import type { ClickUpConnectionStatus } from "@/features/clickup/types";
 import type { SessionUser } from "@/types";
 
+async function autoLinkMember(actorUserId: string): Promise<void> {
+  const localUser = await prisma.user.findUnique({
+    where: { id: actorUserId },
+    select: { id: true, email: true, clickupUserId: true },
+  });
+  if (!localUser || localUser.clickupUserId !== null) return;
+
+  const adminConn = await prisma.clickUpConnection.findFirst({
+    where: { isActive: true, revokedAt: null },
+    select: { accessTokenEncrypted: true, encryptionIv: true },
+  });
+  if (!adminConn) return;
+
+  let members: Awaited<ReturnType<typeof fetchClickUpTeamsWithMembers>>["members"];
+  try {
+    const token = decrypt(adminConn.accessTokenEncrypted, adminConn.encryptionIv);
+    const result = await fetchClickUpTeamsWithMembers(token);
+    members = result.members;
+  } catch {
+    return;
+  }
+
+  const match = members.find(
+    (m) => m.email.toLowerCase() === localUser.email.toLowerCase(),
+  );
+  if (!match) return;
+
+  try {
+    await prisma.user.update({
+      where: { id: localUser.id },
+      data: { clickupUserId: match.clickupUserId, clickupEmail: match.email },
+    });
+  } catch (err) {
+    if (
+      !(err instanceof Prisma.PrismaClientKnownRequestError) ||
+      err.code !== "P2002"
+    ) {
+      throw err;
+    }
+  }
+}
+
 export const clickupService = {
   async getStatus(actor: SessionUser): Promise<ClickUpConnectionStatus> {
+    if (actor.role !== "ADMIN") {
+      const anyActive = await prisma.clickUpConnection.findFirst({
+        where: { isActive: true, revokedAt: null },
+        select: { id: true },
+      });
+      if (anyActive) {
+        await autoLinkMember(actor.userId);
+        return {
+          connected: true,
+          clickupUserId: 0,
+          clickupUserEmail: "",
+          connectedAt: new Date(0).toISOString(),
+          lastSyncAt: null,
+          lastError: null,
+        };
+      }
+      return { connected: false, lastError: null };
+    }
+
     const conn = await prisma.clickUpConnection.findUnique({
       where: { userId: actor.userId },
       select: {

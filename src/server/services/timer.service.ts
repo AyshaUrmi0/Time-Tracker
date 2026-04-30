@@ -74,14 +74,14 @@ export const timerService = {
   },
 
   async start(user: SessionUser, input: StartTimerInput) {
-    const conn = await prisma.clickUpConnection.findUnique({
-      where: { userId: user.userId },
-      select: { isActive: true, revokedAt: true },
+    const conn = await prisma.clickUpConnection.findFirst({
+      where: { isActive: true, revokedAt: null },
+      select: { id: true },
     });
-    if (!conn || !conn.isActive || conn.revokedAt) {
+    if (!conn) {
       throw ApiErrors.conflict(
         "CLICKUP_NOT_CONNECTED",
-        "ClickUp isn't connected. Ask your admin to connect ClickUp before tracking time.",
+        "ClickUp isn't connected for this workspace yet. Ask your admin to connect it.",
       );
     }
 
