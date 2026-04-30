@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin, requireAuth } from "@/lib/auth";
 import { handleApiError } from "@/lib/api-error";
 import { clickupService } from "@/server/services/clickup.service";
 
 export async function GET() {
   try {
-    const user = await requireAdmin();
+    const user = await requireAuth();
     const status = await clickupService.getStatus(user);
     return NextResponse.json({ status });
   } catch (err) {

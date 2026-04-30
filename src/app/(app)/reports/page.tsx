@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useSelectableUsers } from "@/features/users/users.queries";
-import { useTasks } from "@/features/tasks/tasks.queries";
+import { useActiveTasks } from "@/features/tasks/tasks.queries";
 import { useTimeEntries } from "@/features/time-entries/time-entries.queries";
 import type { TimeEntry } from "@/features/time-entries/types";
 import { useReportSummary } from "@/features/reports/reports.queries";
@@ -55,7 +55,7 @@ export default function ReportsPage() {
   const [entryTypeFilter, setEntryTypeFilter] = useState<EntryTypeFilter>("all");
 
   const usersQuery = useSelectableUsers();
-  const tasksQuery = useTasks({ archived: "false" });
+  const tasksQuery = useActiveTasks();
 
   const userIdForQuery = useMemo(() => {
     if (!isAdmin) return undefined;

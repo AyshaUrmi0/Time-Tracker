@@ -1,11 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { ApiErrors } from "@/lib/api-error";
 import { clickupTaskPushService } from "@/server/services/clickup-task-push.service";
-import type {
-  CreateTaskInput,
-  UpdateTaskInput,
-  ListTasksQuery,
-} from "@/features/tasks/tasks.schema";
+import type { ListTasksQuery } from "@/features/tasks/tasks.schema";
 import type { SessionUser } from "@/types";
 
 const taskSelect = {
@@ -60,72 +56,6 @@ export const tasksService = {
     const task = await prisma.task.findUnique({ where: { id }, select: taskSelect });
     if (!task) throw ApiErrors.notFound("Task not found");
     return task;
-  },
-
-  async create(user: SessionUser, input: CreateTaskInput) {
-    requireAdmin(user);
-
-    if (input.assignedToId) {
-      const assignee = await prisma.user.findUnique({
-        where: { id: input.assignedToId },
-        select: { id: true, isArchived: true },
-      });
-      if (!assignee || assignee.isArchived) {
-        throw ApiErrors.validation({ fieldErrors: { assignedToId: ["Assignee not found"] } });
-      }
-    }
-
-    return prisma.task.create({
-      data: {
-        title: input.title,
-        description: input.description ?? null,
-        status: input.status ?? "TODO",
-        assignedToId: input.assignedToId ?? null,
-        createdById: user.userId,
-      },
-      select: taskSelect,
-    });
-  },
-
-  async update(user: SessionUser, id: string, input: UpdateTaskInput) {
-    requireAdmin(user);
-
-    const existing = await prisma.task.findUnique({
-      where: { id },
-      select: { id: true, isArchived: true },
-    });
-    if (!existing) throw ApiErrors.notFound("Task not found");
-    if (existing.isArchived) throw ApiErrors.conflict("TASK_ARCHIVED", "Task is archived");
-
-    if (input.assignedToId) {
-      const assignee = await prisma.user.findUnique({
-        where: { id: input.assignedToId },
-        select: { id: true, isArchived: true },
-      });
-      if (!assignee || assignee.isArchived) {
-        throw ApiErrors.validation({ fieldErrors: { assignedToId: ["Assignee not found"] } });
-      }
-    }
-
-    const updated = await prisma.task.update({
-      where: { id },
-      data: {
-        ...(input.title !== undefined ? { title: input.title } : {}),
-        ...(input.description !== undefined ? { description: input.description ?? null } : {}),
-        ...(input.status !== undefined ? { status: input.status } : {}),
-        ...(input.assignedToId !== undefined ? { assignedToId: input.assignedToId ?? null } : {}),
-      },
-      select: taskSelect,
-    });
-
-    await clickupTaskPushService.pushTaskUpdate(id, {
-      title: input.title !== undefined,
-      description: input.description !== undefined,
-      status: input.status !== undefined,
-      assignee: input.assignedToId !== undefined,
-    });
-
-    return updated;
   },
 
   async archive(user: SessionUser, id: string) {

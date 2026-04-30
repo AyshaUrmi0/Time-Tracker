@@ -59,7 +59,7 @@ export function Dialog({
       role="dialog"
     >
       <div
-        className="absolute inset-0 bg-[rgba(28,25,23,0.45)] backdrop-blur-[2px]"
+        className="absolute inset-0 bg-[rgba(28,25,23,0.45)]"
         onClick={closeOnBackdrop ? onClose : undefined}
         aria-hidden
       />

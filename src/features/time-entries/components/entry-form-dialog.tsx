@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FormField } from "@/components/ui/form-field";
-import { useTasks } from "@/features/tasks/tasks.queries";
+import { useActiveTasks } from "@/features/tasks/tasks.queries";
+import { useClickUpStatus } from "@/features/clickup/clickup.queries";
 import {
   useCreateTimeEntry,
   useUpdateTimeEntry,
@@ -95,7 +96,10 @@ export function EntryFormDialog({
 }: Props) {
   const { data: session } = useSession();
   const currentUserId = session?.user?.id ?? "";
-  const tasksQuery = useTasks({ archived: "false" });
+  const tasksQuery = useActiveTasks();
+  const statusQuery = useClickUpStatus();
+  const isConnected = statusQuery.data?.connected === true;
+  const statusReady = !statusQuery.isLoading;
   const createMutation = useCreateTimeEntry();
   const updateMutation = useUpdateTimeEntry(entry?.id ?? "");
 
@@ -245,6 +249,26 @@ export function EntryFormDialog({
 
   const busy = isSubmitting || createMutation.isPending || updateMutation.isPending;
   const readOnly = mode === "edit" && !canEdit;
+  const blockForConnection = mode === "create" && statusReady && !isConnected;
+
+  if (blockForConnection) {
+    const isAdmin = session?.user?.role === "ADMIN";
+    return (
+      <Dialog
+        open={open}
+        onClose={onClose}
+        title="ClickUp isn't connected yet"
+        description="Time entries are pushed to ClickUp on save, so a connection is required before logging time."
+        size="md"
+      >
+        <p className="py-2 text-[14px] text-[var(--text-secondary)]">
+          {isAdmin
+            ? "Connect ClickUp from Settings → Integrations, then come back to log time."
+            : "Ask your admin to connect ClickUp. Once it's connected, you'll be able to log time."}
+        </p>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog
