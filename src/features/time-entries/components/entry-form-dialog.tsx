@@ -253,19 +253,29 @@ export function EntryFormDialog({
 
   if (blockForConnection) {
     const isAdmin = session?.user?.role === "ADMIN";
+    const lastError = statusQuery.data?.lastError ?? null;
+    const notInWorkspace =
+      !!lastError && lastError.includes("not a member of the connected ClickUp workspace");
+    const title = notInWorkspace
+      ? "You're not in the ClickUp workspace"
+      : "ClickUp isn't connected yet";
+    const description = notInWorkspace
+      ? "Your account isn't a member of the connected ClickUp workspace, so we can't log time on your behalf."
+      : "Time entries are pushed to ClickUp on save, so a connection is required before logging time.";
+    const body = notInWorkspace
+      ? "Ask your admin to invite you to the ClickUp workspace. Once you accept the invite, this will unlock automatically."
+      : isAdmin
+        ? "Connect ClickUp from Settings → Integrations, then come back to log time."
+        : "Ask your admin to connect ClickUp. Once it's connected, you'll be able to log time.";
     return (
       <Dialog
         open={open}
         onClose={onClose}
-        title="ClickUp isn't connected yet"
-        description="Time entries are pushed to ClickUp on save, so a connection is required before logging time."
+        title={title}
+        description={description}
         size="md"
       >
-        <p className="py-2 text-[14px] text-[var(--text-secondary)]">
-          {isAdmin
-            ? "Connect ClickUp from Settings → Integrations, then come back to log time."
-            : "Ask your admin to connect ClickUp. Once it's connected, you'll be able to log time."}
-        </p>
+        <p className="py-2 text-[14px] text-[var(--text-secondary)]">{body}</p>
       </Dialog>
     );
   }
