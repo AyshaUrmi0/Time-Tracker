@@ -10,18 +10,18 @@ import type { ConnectClickUpInput } from "@/features/clickup/clickup.schema";
 import type { ClickUpConnectionStatus } from "@/features/clickup/types";
 import type { SessionUser } from "@/types";
 
-async function autoLinkMember(actorUserId: string): Promise<void> {
+export async function syncMemberLink(actorUserId: string): Promise<boolean> {
   const localUser = await prisma.user.findUnique({
     where: { id: actorUserId },
     select: { id: true, email: true, clickupUserId: true },
   });
-  if (!localUser || localUser.clickupUserId !== null) return;
+  if (!localUser) return false;
 
   const adminConn = await prisma.clickUpConnection.findFirst({
     where: { isActive: true, revokedAt: null },
     select: { accessTokenEncrypted: true, encryptionIv: true },
   });
-  if (!adminConn) return;
+  if (!adminConn) return localUser.clickupUserId !== null;
 
   let members: Awaited<ReturnType<typeof fetchClickUpTeamsWithMembers>>["members"];
   try {
@@ -29,27 +29,39 @@ async function autoLinkMember(actorUserId: string): Promise<void> {
     const result = await fetchClickUpTeamsWithMembers(token);
     members = result.members;
   } catch {
-    return;
+    return localUser.clickupUserId !== null;
   }
 
   const match = members.find(
     (m) => m.email.toLowerCase() === localUser.email.toLowerCase(),
   );
-  if (!match) return;
 
-  try {
+  if (match) {
+    if (localUser.clickupUserId !== match.clickupUserId) {
+      try {
+        await prisma.user.update({
+          where: { id: localUser.id },
+          data: { clickupUserId: match.clickupUserId, clickupEmail: match.email },
+        });
+      } catch (err) {
+        if (
+          !(err instanceof Prisma.PrismaClientKnownRequestError) ||
+          err.code !== "P2002"
+        ) {
+          throw err;
+        }
+      }
+    }
+    return true;
+  }
+
+  if (localUser.clickupUserId !== null) {
     await prisma.user.update({
       where: { id: localUser.id },
-      data: { clickupUserId: match.clickupUserId, clickupEmail: match.email },
+      data: { clickupUserId: null, clickupEmail: null },
     });
-  } catch (err) {
-    if (
-      !(err instanceof Prisma.PrismaClientKnownRequestError) ||
-      err.code !== "P2002"
-    ) {
-      throw err;
-    }
   }
+  return false;
 }
 
 export const clickupService = {
@@ -59,18 +71,24 @@ export const clickupService = {
         where: { isActive: true, revokedAt: null },
         select: { id: true },
       });
-      if (anyActive) {
-        await autoLinkMember(actor.userId);
+      if (!anyActive) {
+        return { connected: false, lastError: null };
+      }
+      const isMember = await syncMemberLink(actor.userId);
+      if (!isMember) {
         return {
-          connected: true,
-          clickupUserId: 0,
-          clickupUserEmail: "",
-          connectedAt: new Date(0).toISOString(),
-          lastSyncAt: null,
-          lastError: null,
+          connected: false,
+          lastError: "You're not a member of the connected ClickUp workspace.",
         };
       }
-      return { connected: false, lastError: null };
+      return {
+        connected: true,
+        clickupUserId: 0,
+        clickupUserEmail: "",
+        connectedAt: new Date(0).toISOString(),
+        lastSyncAt: null,
+        lastError: null,
+      };
     }
 
     const conn = await prisma.clickUpConnection.findUnique({
