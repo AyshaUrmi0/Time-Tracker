@@ -159,6 +159,18 @@ export const timeEntriesService = {
 
   async create(user: SessionUser, input: CreateTimeEntryInput) {
     if (user.role !== "ADMIN") throw ApiErrors.forbidden();
+
+    const conn = await prisma.clickUpConnection.findUnique({
+      where: { userId: user.userId },
+      select: { isActive: true, revokedAt: true },
+    });
+    if (!conn || !conn.isActive || conn.revokedAt) {
+      throw ApiErrors.conflict(
+        "CLICKUP_NOT_CONNECTED",
+        "ClickUp isn't connected. Connect it from Settings before logging time.",
+      );
+    }
+
     const startTime = new Date(input.startTime);
     const endTime = new Date(input.endTime);
     assertManualWindow(startTime, endTime);

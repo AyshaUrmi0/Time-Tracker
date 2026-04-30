@@ -5,7 +5,6 @@ import { createPortal } from "react-dom";
 import { formatDistanceToNowStrict } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { useMounted } from "@/lib/use-mounted";
 import { StatusBadge } from "./status-badge";
 import { PRIORITY_LABELS, dueBadge } from "../clickup-task-fields";
@@ -14,11 +13,10 @@ import type { Task } from "../types";
 type Props = {
   tasks: Task[];
   isAdmin: boolean;
-  onEdit: (task: Task) => void;
   onArchive: (task: Task) => void;
 };
 
-export function TasksTable({ tasks, isAdmin, onEdit, onArchive }: Props) {
+export function TasksTable({ tasks, isAdmin, onArchive }: Props) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[640px] border-collapse">
@@ -42,7 +40,6 @@ export function TasksTable({ tasks, isAdmin, onEdit, onArchive }: Props) {
               key={task.id}
               task={task}
               isAdmin={isAdmin}
-              onEdit={() => onEdit(task)}
               onArchive={() => onArchive(task)}
             />
           ))}
@@ -55,12 +52,10 @@ export function TasksTable({ tasks, isAdmin, onEdit, onArchive }: Props) {
 function TaskRow({
   task,
   isAdmin,
-  onEdit,
   onArchive,
 }: {
   task: Task;
   isAdmin: boolean;
-  onEdit: () => void;
   onArchive: () => void;
 }) {
   return (
@@ -71,13 +66,9 @@ function TaskRow({
       <td className="px-4 py-3">
         <span className="inline-flex flex-wrap items-center gap-2">
           <PriorityDot priority={task.clickupPriority} />
-          <button
-            type="button"
-            onClick={onEdit}
-            className="text-left font-medium text-[var(--text-primary)] hover:text-[var(--accent-hover)]"
-          >
+          <span className="font-medium text-[var(--text-primary)]">
             {task.title}
-          </button>
+          </span>
           {task.isArchived && <Badge tone="muted">Archived</Badge>}
           <DueDateBadge iso={task.clickupDueDate} />
           {task.clickupTaskId && <ClickUpLink url={task.clickupUrl} />}
@@ -104,12 +95,7 @@ function TaskRow({
       </td>
       <td className="whitespace-nowrap px-4 py-3 text-right">
         {isAdmin && !task.isArchived && (
-          <RowActionsMenu onEdit={onEdit} onArchive={onArchive} />
-        )}
-        {!isAdmin && !task.isArchived && (
-          <Button variant="ghost" size="sm" onClick={onEdit}>
-            View
-          </Button>
+          <RowActionsMenu onArchive={onArchive} />
         )}
       </td>
     </tr>
@@ -117,7 +103,7 @@ function TaskRow({
 }
 
 const MENU_WIDTH = 160;
-const MENU_HEIGHT = 80;
+const MENU_HEIGHT = 44;
 const MENU_GAP = 6;
 const VIEWPORT_PADDING = 8;
 
@@ -191,13 +177,7 @@ function ClickUpLink({ url }: { url: string | null }) {
   );
 }
 
-function RowActionsMenu({
-  onEdit,
-  onArchive,
-}: {
-  onEdit: () => void;
-  onArchive: () => void;
-}) {
+function RowActionsMenu({ onArchive }: { onArchive: () => void }) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -272,17 +252,6 @@ function RowActionsMenu({
               }}
               className="z-50 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-md)]"
             >
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  setOpen(false);
-                  onEdit();
-                }}
-                className="block w-full px-3 py-2 text-left text-[15px] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
-              >
-                Edit
-              </button>
               <button
                 type="button"
                 role="menuitem"

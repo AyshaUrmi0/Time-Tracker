@@ -108,7 +108,9 @@ export default function TimesheetPage() {
           </p>
         </div>
         {isAdmin && (
-          <Button onClick={() => setFormState({ open: true, mode: "create" })}>
+          <Button
+            onClick={() => setFormState({ open: true, mode: "create" })}
+          >
             <svg
               width="14"
               height="14"

@@ -6,7 +6,8 @@ import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Avatar } from "@/components/ui/avatar";
 import { StatusBadge } from "@/features/tasks/components/status-badge";
-import { useTasks } from "@/features/tasks/tasks.queries";
+import { useActiveTasks } from "@/features/tasks/tasks.queries";
+import { useClickUpStatus } from "@/features/clickup/clickup.queries";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Task } from "@/features/tasks/types";
 
@@ -43,7 +44,10 @@ function TaskPickerContent({
   const currentUserId = session?.user?.id ?? "";
   const [query, setQuery] = useState("");
   const [cursor, setCursor] = useState(0);
-  const tasksQuery = useTasks({ archived: "false" });
+  const tasksQuery = useActiveTasks();
+  const statusQuery = useClickUpStatus();
+  const isConnected = statusQuery.data?.connected === true;
+  const statusReady = !statusQuery.isLoading;
 
   const filtered = useMemo(() => {
     const all = tasksQuery.data ?? [];
@@ -76,6 +80,25 @@ function TaskPickerContent({
     }
   }
 
+  if (statusReady && !isConnected) {
+    const isAdmin = session?.user?.role === "ADMIN";
+    return (
+      <Dialog
+        open={open}
+        onClose={onClose}
+        title="ClickUp isn't connected yet"
+        description="Time entries are pushed to ClickUp on save, so a connection is required before tracking time."
+        size="md"
+      >
+        <p className="py-2 text-[14px] text-[var(--text-secondary)]">
+          {isAdmin
+            ? "Connect ClickUp from Settings → Integrations, then come back to start a timer."
+            : "Ask your admin to connect ClickUp. Once it's connected, you'll be able to start a timer."}
+        </p>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog
       open={open}
@@ -106,7 +129,7 @@ function TaskPickerContent({
           <div className="px-4 py-8 text-center text-[15px] text-[var(--text-muted)]">
             {query
               ? `No tasks match "${query}".`
-              : "No active tasks. Create one first."}
+              : "No active tasks. Tasks sync from ClickUp."}
           </div>
         ) : (
           <ul role="listbox" className="divide-y divide-[var(--border)]">

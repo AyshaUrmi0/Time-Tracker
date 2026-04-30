@@ -10,8 +10,8 @@ type Props = {
   onStatusChange: (next: TaskStatus | "all") => void;
   assignee: string;
   onAssigneeChange: (next: string) => void;
-  archived: "false" | "true" | "all";
-  onArchivedChange: (next: "false" | "true" | "all") => void;
+  archived: "false" | "true";
+  onArchivedChange: (next: "false" | "true") => void;
   users: SelectableUser[] | undefined;
 };
 
@@ -70,7 +70,6 @@ export function TasksFilters({
           options={[
             { value: "false", label: "Active" },
             { value: "true", label: "Archived" },
-            { value: "all", label: "All" },
           ]}
         />
       </div>

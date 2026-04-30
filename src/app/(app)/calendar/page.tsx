@@ -92,7 +92,7 @@ export default function CalendarPage() {
 
   const isTeamView = week?.scope === "team";
   const currentUserId = session?.user?.id ?? "";
-  const canCreateFromSlot = !isAdmin || adminView === currentUserId;
+  const canCreateFromSlot = isAdmin && adminView === currentUserId;
 
   const todayYmd = useMemo(
     () => (week ? todayInTimezone(week.timezone) : todayInTimezone(tz)),
@@ -115,11 +115,13 @@ export default function CalendarPage() {
   >(undefined);
 
   function handleEntryClick(entry: CalendarEntry) {
+    if (!isAdmin) return;
     setActiveEntry(entry);
     setModalMode("edit");
   }
 
   function handleSlotClick(dayYmd: string, hour: number) {
+    if (!canCreateFromSlot) return;
     const nextHour = Math.min(23, hour + 1);
     setPrefill({
       date: dayYmd,
@@ -131,6 +133,7 @@ export default function CalendarPage() {
   }
 
   function handleCreateClick() {
+    if (!canCreateFromSlot) return;
     if (!week) return;
     const date =
       todayYmd >= week.weekStart && todayYmd <= week.weekEnd
@@ -168,9 +171,7 @@ export default function CalendarPage() {
     setWeekStart(todayInTimezone(tz));
   }
 
-  const canEditActive = activeEntry
-    ? isAdmin || activeEntry.userId === currentUserId
-    : false;
+  const canEditActive = activeEntry ? isAdmin : false;
 
   useDocumentTitle(
     week

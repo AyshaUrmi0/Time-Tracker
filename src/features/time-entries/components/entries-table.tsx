@@ -15,7 +15,7 @@ type Props = {
   onDelete: (entry: TimeEntry) => void;
 };
 
-function canMutate(entry: TimeEntry, currentUserId: string, isAdmin: boolean) {
+function canDelete(entry: TimeEntry, currentUserId: string, isAdmin: boolean) {
   return isAdmin || entry.userId === currentUserId;
 }
 
@@ -107,7 +107,8 @@ export function EntriesTable({
               <EntryRow
                 key={entry.id}
                 entry={entry}
-                canMutate={canMutate(entry, currentUserId, isAdmin)}
+                canEdit={isAdmin}
+                canDelete={canDelete(entry, currentUserId, isAdmin)}
                 showUser={showUser}
                 onEdit={() => onEdit(entry)}
                 onDelete={() => onDelete(entry)}
@@ -122,13 +123,15 @@ export function EntriesTable({
 
 function EntryRow({
   entry,
-  canMutate,
+  canEdit,
+  canDelete,
   showUser,
   onEdit,
   onDelete,
 }: {
   entry: TimeEntry;
-  canMutate: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
   showUser: boolean;
   onEdit: () => void;
   onDelete: () => void;
@@ -139,8 +142,8 @@ function EntryRow({
       <div className="min-w-0 flex-1">
         <button
           type="button"
-          onClick={canMutate ? onEdit : undefined}
-          disabled={!canMutate}
+          onClick={canEdit ? onEdit : undefined}
+          disabled={!canEdit}
           className="block w-full text-left font-medium text-[var(--text-primary)] hover:text-[var(--accent-hover)] disabled:cursor-default disabled:hover:text-[var(--text-primary)]"
         >
           <span className="truncate">{entry.task.title}</span>
@@ -177,12 +180,66 @@ function EntryRow({
       </div>
 
       <div className="w-8 text-right">
-        {canMutate && !isRunning && (
-          <RowActionsMenu onEdit={onEdit} onDelete={onDelete} />
+        {!isRunning && (canEdit || canDelete) && (
+          <RowActionsMenu
+            onEdit={canEdit ? onEdit : undefined}
+            onDelete={canDelete ? onDelete : undefined}
+          />
         )}
       </div>
     </li>
   );
+}
+
+function describeSyncFailure(error: string | null): {
+  label: string;
+  tooltip: string;
+} {
+  const msg = (error ?? "").toLowerCase();
+
+  if (!error || msg.includes("clickup not connected")) {
+    return {
+      label: "ClickUp not connected",
+      tooltip:
+        "Connect your ClickUp account from Settings → Integrations to sync this entry.",
+    };
+  }
+  if (
+    msg.includes("rejected the token") ||
+    msg.includes("invalid_token") ||
+    msg.includes("reconnect")
+  ) {
+    return {
+      label: "ClickUp disconnected",
+      tooltip:
+        "Your ClickUp connection expired or was revoked. Reconnect from Settings → Integrations to retry.",
+    };
+  }
+  if (msg.includes("rate limit") || msg.includes("429")) {
+    return {
+      label: "ClickUp throttled",
+      tooltip:
+        "ClickUp rate-limited the request. The sync will retry automatically.",
+    };
+  }
+  if (msg.includes("couldn't reach") || msg.includes("unreachable")) {
+    return {
+      label: "ClickUp unreachable",
+      tooltip:
+        "Couldn't reach ClickUp. Check your network — the sync will retry automatically.",
+    };
+  }
+  if (msg.includes("404") || msg.includes("not found")) {
+    return {
+      label: "Task missing in ClickUp",
+      tooltip:
+        "The linked ClickUp task no longer exists. Re-link the task or remove the ClickUp link.",
+    };
+  }
+  return {
+    label: "Sync failed",
+    tooltip: `Couldn't push this entry to ClickUp: ${error}. The sync will retry automatically.`,
+  };
 }
 
 function SyncStatusBadge({ entry }: { entry: TimeEntry }) {
@@ -199,13 +256,14 @@ function SyncStatusBadge({ entry }: { entry: TimeEntry }) {
     );
   }
   if (entry.syncStatus === "FAILED") {
+    const { label, tooltip } = describeSyncFailure(entry.syncLastError);
     return (
       <span
         className="inline-flex items-center gap-1 text-[13px] text-[var(--danger)]"
-        title={entry.syncLastError ?? "Sync to ClickUp failed"}
+        title={tooltip}
       >
         <span className="h-1.5 w-1.5 rounded-full bg-[var(--danger)]" />
-        Sync failed
+        {label}
       </span>
     );
   }
@@ -232,8 +290,8 @@ function RowActionsMenu({
   onEdit,
   onDelete,
 }: {
-  onEdit: () => void;
-  onDelete: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
@@ -309,28 +367,32 @@ function RowActionsMenu({
               }}
               className="z-50 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-md)]"
             >
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  setOpen(false);
-                  onEdit();
-                }}
-                className="block w-full px-3 py-2 text-left text-[15px] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
-              >
-                Edit
-              </button>
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  setOpen(false);
-                  onDelete();
-                }}
-                className="block w-full px-3 py-2 text-left text-[15px] text-[var(--danger)] hover:bg-[var(--danger-soft)]"
-              >
-                Delete
-              </button>
+              {onEdit && (
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setOpen(false);
+                    onEdit();
+                  }}
+                  className="block w-full px-3 py-2 text-left text-[15px] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
+                >
+                  Edit
+                </button>
+              )}
+              {onDelete && (
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setOpen(false);
+                    onDelete();
+                  }}
+                  className="block w-full px-3 py-2 text-left text-[15px] text-[var(--danger)] hover:bg-[var(--danger-soft)]"
+                >
+                  Delete
+                </button>
+              )}
             </div>
           </>,
           document.body,
